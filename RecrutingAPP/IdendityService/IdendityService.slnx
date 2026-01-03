@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="../JobProviderService/JobProviderService.csproj" Id="ef1e32c2-85cd-4f64-ab9e-8598521af8d9" />
+  <Project Path="IdendityService/IdendityService.csproj" />
+</Solution>

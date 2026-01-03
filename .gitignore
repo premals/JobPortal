@@ -1,0 +1,19 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/RecrutingAPP/Gateway/.vs
+/RecrutingAPP/Gateway/bin/Debug/net10.0
+/RecrutingAPP/Gateway/obj
+/RecrutingAPP/IdendityService/.vs
+/RecrutingAPP/IdendityService/IdendityService/bin/Debug/net10.0
+/RecrutingAPP/IdendityService/IdendityService/obj
+/RecrutingAPP/JobProviderService/bin/Debug/net10.0
+/RecrutingAPP/JobProviderService/obj
+/RecrutingAPP/JobSeekerService/bin/Debug/net10.0
+/RecrutingAPP/JobSeekerService/obj
+/RecrutingAPP/RecrutingSolutions/.vs
+/RecrutingAPP/Shared.Contracts/bin/Debug/net10.0
+/RecrutingAPP/Shared.Contracts/obj
+/JobPortalUi/career-connect-ui/.vscode

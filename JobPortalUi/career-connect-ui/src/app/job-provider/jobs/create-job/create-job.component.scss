@@ -1,0 +1,50 @@
+.create-job-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 850px;
+  background: #ffffff;
+  border-radius: 16px;
+  z-index: 9999;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.4);
+}
+
+/* ✅ CLOSE BUTTON — ALWAYS TOP RIGHT */
+.close-btn {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+
+  background: transparent;
+  border: none;
+  font-size: 1.8rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #333;
+  z-index: 10000;
+}
+
+.close-btn:hover {
+  color: #dc3545;
+}
+
+/* HEADER */
+.modal-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid #eee;
+}
+
+/* BODY */
+.modal-body {
+  padding: 20px 24px;
+  max-height: 65vh;
+  overflow-y: auto;
+}
+
+/* FOOTER */
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #eee;
+}

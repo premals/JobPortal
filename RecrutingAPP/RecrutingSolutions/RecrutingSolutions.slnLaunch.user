@@ -1,0 +1,23 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "..\\Gateway\\Gateway.csproj",
+        "Action": "StartWithoutDebugging"
+      },
+      {
+        "Path": "..\\IdendityService\\IdendityService\\IdendityService.csproj",
+        "Action": "StartWithoutDebugging"
+      },
+      {
+        "Path": "..\\JobProviderService\\JobProviderService.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "..\\JobSeekerService\\JobSeekerService.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

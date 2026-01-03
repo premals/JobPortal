@@ -1,0 +1,59 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand">JobProvider</a>
+
+    <div class="collapse navbar-collapse show">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a routerLink="/job-provider" class="nav-link">Dashboard</a>
+        </li>
+        <li class="nav-item">
+          <a routerLink="/job-provider/jobs" class="nav-link">My Jobs</a>
+        </li>
+        <li class="nav-item">
+          <a routerLink="/job-provider/jobs/create" class="nav-link">
+            Post Job
+          </a>
+        </li>
+      </ul>
+
+      <!-- ✅ PROFILE POPUP -->
+      <div class="dropdown">
+        <button
+          class="btn btn-outline-light btn-sm dropdown-toggle"
+          type="button"
+          data-bs-toggle="dropdown"
+          aria-expanded="false">
+          <i class="bi bi-person-circle me-1"></i>
+          Profile
+        </button>
+
+        <ul class="dropdown-menu dropdown-menu-end shadow">
+          <li>
+            <a class="dropdown-item" routerLink="/profile">
+              View Profile
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item" routerLink="/profile/edit">
+              Edit Profile
+            </a>
+          </li>
+
+          <li><hr class="dropdown-divider"></li>
+
+          <li>
+            <a class="dropdown-item text-danger" (click)="logout()">
+              Logout
+            </a>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</nav>
+
+<div class="container mt-4">
+  <router-outlet></router-outlet>
+</div>

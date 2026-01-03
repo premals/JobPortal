@@ -1,0 +1,32 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-success">
+  <div class="container-fluid">
+    <a class="navbar-brand">Job Seeker</a>
+
+    <ul class="navbar-nav me-auto">
+      <li class="nav-item">
+        <a class="nav-link" routerLink="/job-seeker">Dashboard</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" routerLink="/job-seeker/jobs">Jobs</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" routerLink="/job-seeker/applications">
+          Applications
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" routerLink="/job-seeker/resume">
+          AI Resume
+        </a>
+      </li>
+    </ul>
+
+    <button class="btn btn-outline-light btn-sm" routerLink="/profile">
+      Profile
+    </button>
+  </div>
+</nav>
+
+<div class="container mt-4">
+  <router-outlet></router-outlet>
+</div>

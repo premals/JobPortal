@@ -1,0 +1,52 @@
+<div class="applications-page">
+
+  <h3 class="page-title">Job Applications</h3>
+  <p class="page-subtitle">
+    Review candidates who applied for this job
+  </p>
+
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary"></div>
+  </div>
+
+  <div *ngIf="!isLoading && applications.length === 0"
+       class="alert alert-info">
+    No applications received yet.
+  </div>
+
+  <div class="row" *ngIf="!isLoading">
+
+    <div class="col-lg-6 mb-4"
+         *ngFor="let app of applications">
+
+      <div class="application-card">
+
+        <div class="card-header">
+          <div>
+            <h5>{{ app.candidateName }}</h5>
+            <span class="email">{{ app.email }}</span>
+          </div>
+
+          <span class="status-badge"
+                [ngClass]="getStatusClass(app.status)">
+            {{ app.status }}
+          </span>
+        </div>
+
+        <div class="card-body">
+          <div class="info-row">
+            <span>Experience</span>
+            <strong>{{ app.experienceYears }} years</strong>
+          </div>
+
+          <div class="info-row">
+            <span>Applied On</span>
+            <strong>{{ app.appliedOn | date:'mediumDate' }}</strong>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>

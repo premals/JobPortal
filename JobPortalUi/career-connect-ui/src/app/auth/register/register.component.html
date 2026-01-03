@@ -1,0 +1,40 @@
+<div class="auth-page">
+  <div class="auth-card">
+
+    <h2 class="auth-title">Create Account</h2>
+
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+
+      <div class="mb-3">
+        <label class="form-label">Full Name</label>
+        <input type="text" class="form-control" formControlName="fullName">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-control" formControlName="email">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-control" formControlName="password">
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label">Register As</label>
+        <select class="form-select" formControlName="userType">
+          <option value="">Select role</option>
+          <option value="JobSeeker">Job Seeker</option>
+          <option value="JobProvider">Job Provider</option>
+        </select>
+      </div>
+
+      <button class="btn btn-primary w-100" type="submit"
+              [disabled]="registerForm.invalid">
+        Register
+      </button>
+
+    </form>
+
+  </div>
+</div>

@@ -1,0 +1,32 @@
+<div class="container mt-5">
+
+  <div class="card mx-auto" style="max-width: 600px;">
+    <div class="card-body">
+
+      <h3 class="card-title mb-4">My Profile</h3>
+
+      <div *ngIf="isLoading" class="text-center">
+        <div class="spinner-border"></div>
+      </div>
+
+      <div *ngIf="!isLoading && profile">
+
+        <p><strong>Full Name:</strong> {{ profile.fullName || '-' }}</p>
+        <p><strong>Email:</strong> {{ profile.email }}</p>
+        <p><strong>User Type:</strong> {{ profile.userType }}</p>
+
+        <div class="d-flex gap-2 mt-4">
+          <button class="btn btn-primary w-50" (click)="editProfile()">
+            Edit Profile
+          </button>
+          <button class="btn btn-danger w-50" (click)="logout()">
+            Logout
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+</div>

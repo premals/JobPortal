@@ -1,0 +1,57 @@
+{
+  "Routes": [
+    {
+      "DownstreamPathTemplate": "/api/Auth/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5198
+        }
+      ],
+      "UpstreamPathTemplate": "/identity/{everything}",
+      "UpstreamHttpMethod": [ "POST", "GET", "PUT", "DELETE", "OPTIONS" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/Profile/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5198
+        }
+      ],
+      "UpstreamPathTemplate": "/profile/{everything}",
+      "UpstreamHttpMethod": [ "POST", "GET", "PUT", "DELETE" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/jobs/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5133
+        }
+      ],
+      "UpstreamPathTemplate": "/jobprovider/jobs/{everything}",
+      "UpstreamHttpMethod": [ "POST", "GET", "PUT", "DELETE", "PATCH" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/jobseeker/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5025
+        }
+      ],
+      "UpstreamPathTemplate": "/jobseeker/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT" ]
+    }
+
+  ],
+  "AuthenticationProviderKey": "Bearer",
+  "GlobalConfiguration": {
+    "BaseUrl": "http://localhost:5000"
+  }
+}

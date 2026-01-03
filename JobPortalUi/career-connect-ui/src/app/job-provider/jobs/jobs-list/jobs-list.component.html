@@ -1,0 +1,57 @@
+<!-- ================= CREATE JOB POPUP ================= -->
+<app-create-job
+  *ngIf="showCreateJob"
+  (closed)="closeCreateJob()">
+</app-create-job>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="mb-0">My Jobs</h4>
+
+  <button
+    class="btn btn-primary d-flex align-items-center gap-2"
+    (click)="openCreateJob()">
+    <i class="bi bi-plus-circle"></i>
+    Post New Job
+  </button>
+</div>
+
+
+
+  
+<div *ngIf="jobs.length === 0" class="alert alert-info">
+    You haven’t posted any jobs yet.
+</div>
+
+<div class="row">
+
+    <div class="col-lg-6 col-xl-4 mb-4" *ngFor="let job of jobs">
+
+        <div class="job-card">
+
+            <div class="job-header">
+                <h5 class="job-title">{{ job.title }}</h5>
+                <span class="badge bg-secondary">
+                    {{ job.employmentType }}
+                </span>
+            </div>
+
+            <div class="job-body">
+                <p class="job-location">
+                    📍 {{ job.city }}, {{ job.country }}
+                </p>
+            </div>
+
+            <div class="job-actions">
+                <button class="btn btn-outline-primary btn-sm" (click)="editJob(job.id)">
+                    Edit
+                </button>
+
+                <button class="btn btn-outline-success btn-sm" (click)="viewApplications(job.id)">
+                    View Applications
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

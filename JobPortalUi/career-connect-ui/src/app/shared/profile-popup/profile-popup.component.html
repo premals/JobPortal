@@ -1,0 +1,53 @@
+<div class="dropdown">
+  <button
+    class="btn btn-outline-light dropdown-toggle"
+    type="button"
+    data-bs-toggle="dropdown"
+    aria-expanded="false">
+
+    <i class="bi bi-person-circle me-1"></i>
+    {{ fullName }}
+  </button>
+
+  <ul class="dropdown-menu dropdown-menu-end shadow">
+
+    <li class="px-3 py-2">
+      <div class="fw-bold">{{ fullName }}</div>
+      <div class="small text-muted">{{ email }}</div>
+    </li>
+
+    <li><hr class="dropdown-divider"></li>
+
+    <li>
+      <a class="dropdown-item" (click)="navigate('/profile')">
+        View Profile
+      </a>
+    </li>
+
+    <li>
+      <a class="dropdown-item" (click)="navigate('/profile/edit')">
+        Edit Profile
+      </a>
+    </li>
+
+    <li *ngIf="userType === 'JobProvider'">
+      <a class="dropdown-item" (click)="navigate('/job-provider')">
+        Dashboard
+      </a>
+    </li>
+
+    <li *ngIf="userType === 'JobSeeker'">
+      <a class="dropdown-item" (click)="navigate('/job-seeker')">
+        Dashboard
+      </a>
+    </li>
+
+    <li><hr class="dropdown-divider"></li>
+
+    <li>
+      <a class="dropdown-item text-danger" (click)="logout()">
+        Logout
+      </a>
+    </li>
+  </ul>
+</div>

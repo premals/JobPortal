@@ -1,0 +1,161 @@
+<!-- 🔥 BACKDROP (click to close) -->
+<!-- <div
+  class="modal-backdrop-custom"
+  (click)="close()">
+</div> -->
+
+<div class="modal-header d-flex align-items-center justify-content-between">
+
+  <h5 class="mb-0 d-flex align-items-center">
+    <i class="bi bi-briefcase-fill me-2"></i>
+    Create New Job
+  </h5>
+
+  <!-- ❌ CLOSE BUTTON (RIGHT ALIGNED) -->
+  <button
+    type="button"
+    class="close-btn"
+    aria-label="Close"
+    (click)="close()">
+    ✕
+  </button>
+
+</div>
+
+<!-- 🔥 MODAL -->
+<div
+  class="create-job-modal"
+  (click)="$event.stopPropagation()">
+
+  <!-- ================= HEADER ================= -->
+  <div class="modal-header">
+    <h5 class="mb-0">
+      <i class="bi bi-briefcase-fill me-2"></i>
+      Create New Job
+    </h5>
+
+    <!-- ❌ CLOSE BUTTON -->
+    <button
+      type="button"
+      class="close-btn"
+      (click)="close()">
+      ✕
+    </button>
+  </div>
+
+  <!-- ================= BODY ================= -->
+  <div class="modal-body">
+
+    <!-- STEP INDICATOR -->
+    <ul class="nav nav-pills justify-content-center mb-4">
+      <li class="nav-item">
+        <span class="nav-link" [class.active]="step === 1">
+          Basic
+        </span>
+      </li>
+      <li class="nav-item">
+        <span class="nav-link" [class.active]="step === 2">
+          Details
+        </span>
+      </li>
+      <li class="nav-item">
+        <span class="nav-link" [class.active]="step === 3">
+          Salary
+        </span>
+      </li>
+    </ul>
+
+    <!-- FORM -->
+    <form [formGroup]="jobForm">
+
+      <!-- ===== STEP 1 ===== -->
+      <div *ngIf="step === 1">
+        <div class="mb-3">
+          <label class="form-label">Job Title</label>
+          <input class="form-control" formControlName="title">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Description</label>
+          <textarea
+            class="form-control"
+            rows="4"
+            formControlName="description">
+          </textarea>
+        </div>
+      </div>
+
+      <!-- ===== STEP 2 ===== -->
+      <div *ngIf="step === 2">
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">City</label>
+            <input class="form-control" formControlName="city">
+          </div>
+
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Country</label>
+            <input class="form-control" formControlName="country">
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Key Skills</label>
+          <input
+            class="form-control"
+            placeholder="Angular, .NET, Azure"
+            formControlName="keySkills">
+        </div>
+      </div>
+
+      <!-- ===== STEP 3 ===== -->
+      <div *ngIf="step === 3">
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Min Salary</label>
+            <input
+              type="number"
+              class="form-control"
+              formControlName="minSalary">
+          </div>
+
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Max Salary</label>
+            <input
+              type="number"
+              class="form-control"
+              formControlName="maxSalary">
+          </div>
+        </div>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- ================= FOOTER ================= -->
+  <div class="modal-footer d-flex justify-content-between">
+
+    <button
+      class="btn btn-outline-secondary"
+      (click)="prevStep()"
+      [disabled]="step === 1">
+      Back
+    </button>
+
+    <button
+      class="btn btn-primary"
+      *ngIf="step < 3"
+      (click)="nextStep()">
+      Next
+    </button>
+
+    <button
+      class="btn btn-success"
+      *ngIf="step === 3"
+      (click)="submit()">
+      Post Job
+    </button>
+
+  </div>
+
+</div>

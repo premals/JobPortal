@@ -1,0 +1,6 @@
+@IdendityService_HostAddress = http://localhost:5198
+
+GET {{IdendityService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

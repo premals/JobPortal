@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+	  <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.20.1" />
+	  <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.8" />
+
+	  <!-- MongoDB -->
+	  <PackageReference Include="MongoDB.Driver" Version="2.25.0" />
+	  <PackageReference Include="RabbitMQ.Client" Version="6.8.1" />
+
+	  <!-- Swagger / OpenAPI -->
+	  <PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.1" />
+
+	  <!-- Configuration -->
+	  <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Shared.Contracts\Shared.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

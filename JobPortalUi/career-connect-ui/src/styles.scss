@@ -1,0 +1,49 @@
+/* Global reset */
+body {
+  background-color: #f4f6f9;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  color: #1f2937;
+}
+
+/* Auth pages layout */
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+}
+
+/* Card */
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 32px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+/* Titles */
+.auth-title {
+  text-align: center;
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+
+/* Buttons */
+.btn-primary {
+  height: 46px;
+  font-weight: 500;
+}
+
+/* Inputs */
+.form-control,
+.form-select {
+  height: 46px;
+}
+
+/* Links */
+.auth-links {
+  margin-top: 16px;
+  text-align: center;
+}
