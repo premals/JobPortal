@@ -1,3 +1,4 @@
+using Azure.Messaging.ServiceBus;
 using JobSeekerService.Application.EventHandler;
 using JobSeekerService.Application.Interfaces;
 using JobSeekerService.Application.UseCases;
@@ -43,7 +44,7 @@ builder.Services.AddSingleton<IMongoDatabase>(sp =>
 builder.Services.AddSingleton<MongoDbContext>();
 
 // ================================
-// Dependency Injection – Repositories
+// Dependency Injection ï¿½ Repositories
 // ================================
 builder.Services.AddScoped<IJobReadRepository, JobReadRepository>();
 builder.Services.AddScoped<IJobApplicationRepository, JobApplicationRepository>();
@@ -53,7 +54,7 @@ builder.Services.AddScoped<IJobSeekerRepository, JobSeekerRepository>();
 //builder.Services.AddSingleton<JobApplicationIndexSeeder>();
 
 // ================================
-// Dependency Injection – Use Cases
+// Dependency Injection ï¿½ Use Cases
 // ================================
 builder.Services.AddScoped<BrowseJobsUseCase>();
 builder.Services.AddScoped<GetJobDetailsUseCase>();
@@ -99,31 +100,36 @@ builder.Services.AddAuthorization(options =>
 });
 
 
-if (builder.Configuration["Messaging:Provider"] == "RabbitMQ")
+var messagingProvider = builder.Configuration["Messaging:Provider"];
+
+if (messagingProvider == "RabbitMQ")
 {
     builder.Services.AddHostedService<JobEventsRabbitConsumer>();
-}
-else
-{
-    builder.Services.AddHostedService<JobEventsServiceBusConsumer>();
-}
-
-if (builder.Configuration["Messaging:Provider"] == "RabbitMQ")
-{
     builder.Services.AddSingleton<IEventBus, RabbitMqEventBus>();
 }
+else if (messagingProvider == "AzureServiceBus")
+{
+    builder.Services.AddSingleton<ServiceBusClient>(sp =>
+        new ServiceBusClient(
+            builder.Configuration["Messaging:AzureServiceBus:ConnectionString"]
+        ));
+
+    builder.Services.AddHostedService<JobEventsServiceBusConsumer>();
+    builder.Services.AddSingleton<IEventBus, AzureServiceBusEventBus>();
+}
 else
 {
-    builder.Services.AddSingleton<IEventBus, AzureServiceBusEventBus>();
+    throw new InvalidOperationException(
+        $"Unsupported Messaging Provider: {messagingProvider}");
 }
 
 builder.Services.AddScoped<JobSeekerRegisteredEventHandler>();
 
-if (builder.Configuration["Messaging:Provider"] == "RabbitMQ")
+if (messagingProvider == "RabbitMQ")
 {
     builder.Services.AddHostedService<JobSeekerRegisteredConsumer>();
 }
-else
+else if (messagingProvider == "AzureServiceBus")
 {
     builder.Services.AddHostedService<JobSeekerRegisteredServiceBusConsumer>();
 }
