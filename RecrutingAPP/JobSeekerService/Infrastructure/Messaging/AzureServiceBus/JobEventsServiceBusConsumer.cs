@@ -1,5 +1,6 @@
 ﻿using Azure.Messaging.ServiceBus;
 using JobSeekerService.Application.Interfaces;
+using Microsoft.Extensions.Configuration;
 using System.Text.Json;
 using static Shared.Contracts.Events.JobEvents;
 
@@ -12,13 +13,14 @@ namespace JobSeekerService.Infrastructure.Messaging.AzureServiceBus
 
         public JobEventsServiceBusConsumer(
             ServiceBusClient client,
-            IServiceProvider provider)
+            IServiceProvider provider,
+            IConfiguration configuration)
         {
             _provider = provider;
 
             _processor = client.CreateProcessor(
-                topicName: "jobs-topic",
-                subscriptionName: "jobseeker-sub",
+                topicName: configuration["Messaging:AzureServiceBus:JobEventsTopic"] ?? "jobs-topic",
+                subscriptionName: configuration["Messaging:AzureServiceBus:JobEventsSubscription"] ?? "jobseeker-sub",
                 new ServiceBusProcessorOptions
                 {
                     MaxConcurrentCalls = 1,
