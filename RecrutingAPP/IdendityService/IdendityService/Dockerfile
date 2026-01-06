@@ -6,10 +6,12 @@ EXPOSE 8080
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["IdendityService/IdendityService.csproj", "IdendityService/"]
-RUN dotnet restore "IdendityService/IdendityService.csproj"
+
+COPY ["IdendityService/IdendityService/IdendityService.csproj", "IdendityService/IdendityService/"]
+RUN dotnet restore "IdendityService/IdendityService/IdendityService.csproj"
+
 COPY . .
-RUN dotnet publish "IdendityService/IdendityService.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "IdendityService/IdendityService/IdendityService.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
