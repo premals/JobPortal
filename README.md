@@ -32,6 +32,10 @@ C:\Users\vedan\OneDrive\Desktop\Job Portal
 
 az acr login --name acrvkpshared
 
+Frontend
+docker build -t acrvkpshared.azurecr.io/jobportal/frontend:latest -f JobPortalUi/career-connect-ui/Dockerfile JobPortalUi/career-connect-ui
+docker push acrvkpshared.azurecr.io/jobportal/frontend:latest
+
 Gateway
 docker build -f RecrutingAPP/Gateway/Dockerfile -t acrvkpshared.azurecr.io/jobportal/gateway:latest RecrutingAPP ; docker push acrvkpshared.azurecr.io/jobportal/gateway:latest
 
