@@ -35,6 +35,7 @@ namespace JobSeekerService.Infrastructure.Messaging.AzureServiceBus
                 await handler.HandleAsync(evt);
                 await args.CompleteMessageAsync(args.Message);
             };
+            _processor.ProcessErrorAsync += _ => Task.CompletedTask;
 
             await _processor.StartProcessingAsync(stoppingToken);
         }
