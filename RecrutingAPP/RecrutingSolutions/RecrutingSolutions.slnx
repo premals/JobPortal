@@ -1,7 +1,0 @@
-<Solution>
-  <Project Path="../Gateway/Gateway.csproj" />
-  <Project Path="../IdendityService/IdendityService/IdendityService.csproj" />
-  <Project Path="../JobProviderService/JobProviderService.csproj" />
-  <Project Path="../JobSeekerService/JobSeekerService.csproj" />
-  <Project Path="../Shared.Contracts/Shared.Contracts.csproj" Id="9b794c6c-e708-432d-b0a4-f49bd1fe92b7" />
-</Solution>
