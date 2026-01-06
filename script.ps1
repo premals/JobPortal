@@ -156,19 +156,23 @@ docker run -d --name jobportal-jobseeker `
 
 Write-Host "Starting Gateway"
 docker run -d --name jobportal-gateway `
-    -p 5000:5000 `
-    -e "ASPNETCORE_URLS=http://+:5000" `
+    -p 5122:5122 `
+    -e "ASPNETCORE_URLS=http://+:5122" `
     -v "${ocelotOverride}:/app/ocelot.json" `
     "${Registry}/gateway:latest" | Out-Null
 
 
 Write-Host "Starting Frontend"
 docker run -d --name jobportal-frontend `
-    -p 4000:4000 `
+    -p 4200:4200 `
+    -e "PORT=4200" `
     "${Registry}/frontend:latest" | Out-Null
 
 
 Write-Host ""
 Write-Host "ALL CONTAINERS STARTED SUCCESSFULLY"
-Write-Host "Frontend URL: http://localhost:4000"
-Write-Host "Gateway URL: http://localhost:5000"
+Write-Host "Frontend URL: http://localhost:4200"
+Write-Host "Gateway URL: http://localhost:5122/swagger/index.html"
+Write-Host "Identity Service URL: http://localhost:5198/swagger/index.html"
+Write-Host "Job Seeker Service URL: http://localhost:5025/swagger/index.html"
+Write-Host "Job Provider Service URL: http://localhost:5133/swagger/index.html"

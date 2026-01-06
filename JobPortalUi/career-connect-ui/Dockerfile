@@ -16,5 +16,5 @@ RUN npm ci --omit=dev
 
 COPY --from=build /app/dist ./dist
 
-EXPOSE 4000
+EXPOSE 4200
 CMD ["node", "dist/career-connect-ui/server/server.mjs"]

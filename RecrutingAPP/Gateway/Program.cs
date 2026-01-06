@@ -5,18 +5,24 @@ using Ocelot.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Load Ocelot configuration (ocelot.json)
+// --------------------------------------------------
+// Configuration
+// --------------------------------------------------
 builder.Configuration.AddJsonFile("ocelot.json", optional: false, reloadOnChange: true);
 
+// --------------------------------------------------
+// Swagger
+// --------------------------------------------------
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title = "API Gateway",
+        Title = "Job Portal API Gateway",
         Version = "v1"
     });
 
-    // JWT Support
+    // JWT
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Type = SecuritySchemeType.Http,
@@ -35,11 +41,14 @@ builder.Services.AddSwaggerGen(c =>
                     Id = "Bearer"
                 }
             },
-            new string[] {}
+            Array.Empty<string>()
         }
     });
 });
 
+// --------------------------------------------------
+// CORS
+// --------------------------------------------------
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular", policy =>
@@ -51,8 +60,9 @@ builder.Services.AddCors(options =>
     });
 });
 
-
-
+// --------------------------------------------------
+// Authentication
+// --------------------------------------------------
 builder.Services
     .AddAuthentication("Bearer")
     .AddJwtBearer("Bearer", options =>
@@ -66,24 +76,41 @@ builder.Services
         };
     });
 
-// Register Ocelot
+// --------------------------------------------------
+// Ocelot
+// --------------------------------------------------
 builder.Services.AddOcelot(builder.Configuration);
 
 var app = builder.Build();
-app.UseCors("GatewaySwaggerCors");
+
+// --------------------------------------------------
+// Middleware order matters
+// --------------------------------------------------
 app.UseCors("AllowAngular");
+
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "API Gateway");
 
-    c.SwaggerEndpoint("http://localhost:5133/swagger/v1/swagger.json", "Job Provider Service");
-    c.SwaggerEndpoint("http://localhost:7210//swagger/v1/swagger.json", "Job Seeker Service");
-    c.SwaggerEndpoint("http://localhost:5198/swagger/v1/swagger.json", "Identity Service");
+    // Docker-safe endpoints
+    c.SwaggerEndpoint(
+        "http://host.docker.internal:5133/swagger/v1/swagger.json",
+        "Job Provider Service");
+
+    c.SwaggerEndpoint(
+        "http://host.docker.internal:5025/swagger/v1/swagger.json",
+        "Job Seeker Service");
+
+    c.SwaggerEndpoint(
+        "http://host.docker.internal:5198/swagger/v1/swagger.json",
+        "Identity Service");
 });
 
+// MUST be last
 await app.UseOcelot();
-
-
 
 app.Run();
