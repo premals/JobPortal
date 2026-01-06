@@ -4,11 +4,11 @@
     "Projects": [
       {
         "Path": "..\\Gateway\\Gateway.csproj",
-        "Action": "StartWithoutDebugging"
+        "Action": "Start"
       },
       {
         "Path": "..\\IdendityService\\IdendityService\\IdendityService.csproj",
-        "Action": "StartWithoutDebugging"
+        "Action": "Start"
       },
       {
         "Path": "..\\JobProviderService\\JobProviderService.csproj",
