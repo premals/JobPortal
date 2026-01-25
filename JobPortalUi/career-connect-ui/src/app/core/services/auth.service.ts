@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 // Auth models
@@ -9,13 +9,45 @@ import { LoginRequest } from '../models/auth/login-request.model';
 import { AuthResponse } from '../models/auth/auth-response.model';
 import { ForgotPasswordRequest } from '../models/auth/forgot-password-request.model';
 import { ResetPasswordRequest } from '../models/auth/reset-password-request.model';
+import { Router } from '@angular/router';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
 
   private readonly baseUrl = environment.apiUrl;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient,
+    private router: Router
+  ) {}
+
+
+  refreshToken(): Observable<any> {
+  const refreshToken = localStorage.getItem('refreshToken');
+
+  return this.http.post<any>(
+    `${this.baseUrl}/identity/refresh-token`,
+    { refreshToken }
+  ).pipe(
+    tap(res => {
+      // Update tokens
+      localStorage.setItem('accessToken', res.accessToken);
+      localStorage.setItem('refreshToken', res.refreshToken);
+
+        localStorage.setItem('userType', res.profile.userType);
+        localStorage.setItem('userId', res.profile.userId);
+        localStorage.setItem('email', res.profile.email);
+
+    })
+  );
+}
+
+/**
+ * Logout user
+ */
+logout(): void {
+  localStorage.clear();
+  this.router.navigate(['/login']);
+}
 
   /**
    * POST /api/Auth/register

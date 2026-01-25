@@ -50,8 +50,7 @@ export class LoginComponent {
     this.authService.login(this.loginForm.value).subscribe({
       next: (res: any) => {
 
-        // ✅ Store tokens
-        localStorage.setItem('token', res.accessToken);
+        localStorage.setItem('accessToken', res.accessToken);
         localStorage.setItem('refreshToken', res.refreshToken);
 
         // ✅ Store user profile info

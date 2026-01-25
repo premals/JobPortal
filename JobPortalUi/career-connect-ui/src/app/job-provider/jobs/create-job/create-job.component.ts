@@ -6,11 +6,11 @@ import {
   Validators,
   ReactiveFormsModule
 } from '@angular/forms';
-
 import { Router } from '@angular/router';
 
 import { CreateJobRequest } from '../../../core/models/job-provider/create-job-request.model';
 import { JobProviderService } from '../../../core/services/job-provider.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-create-job',
@@ -21,52 +21,68 @@ import { JobProviderService } from '../../../core/services/job-provider.service'
 })
 export class CreateJobComponent {
 
-  jobs: any[] = [];
-  jobForm!: FormGroup; // ✅ declare only
-
   @Output() closed = new EventEmitter<void>();
 
+  jobForm: FormGroup;
   step = 1;
 
-  constructor(private fb: FormBuilder,private jobService: JobProviderService, private router: Router) {
-     this.jobForm = this.fb.group({
-          title: ['', Validators.required],
-          description: ['', [Validators.required, Validators.minLength(20)]],
-    
-          employmentType: ['PartTime', Validators.required],
-          workMode: ['Onsite', Validators.required],
-    
-          minExperience: [0, Validators.required],
-          maxExperience: [0, Validators.required],
-    
-          city: ['', Validators.required],
-          state: ['', Validators.required],
-          country: ['', Validators.required],
-    
-          minSalary: [0],
-          maxSalary: [0],
-          currency: ['INR', Validators.required],
-          salaryFrequency: ['Monthly', Validators.required],
-    
-          keySkills: ['', Validators.required],
-          education: ['', Validators.required],
-          industry: ['', Validators.required],
-    
-          openings: [1, Validators.required],
-          expiryDate: ['', Validators.required]
-        });
+  constructor(
+    private fb: FormBuilder,
+    private jobService: JobProviderService,
+    private router: Router,
+    private toastService: ToastService
+  ) {
+    this.jobForm = this.fb.group({
+
+      /* ======================
+         STEP 1 – BASIC INFO
+      ====================== */
+      title: ['', Validators.required],
+      description: ['', [Validators.required, Validators.minLength(20)]],
+      employmentType: ['PartTime', Validators.required],
+      workMode: ['Onsite', Validators.required],
+
+      /* ======================
+         STEP 2 – EXPERIENCE & LOCATION
+      ====================== */
+      minExperience: [0, [Validators.required, Validators.min(0)]],
+      maxExperience: [0, [Validators.required, Validators.min(0)]],
+
+      city: ['', Validators.required],
+      state: ['', Validators.required],
+      country: ['', Validators.required],
+
+      keySkills: ['', Validators.required],
+      education: ['', Validators.required],
+      industry: ['', Validators.required],
+
+      /* ======================
+         STEP 3 – SALARY & META
+      ====================== */
+      minSalary: [0, Validators.min(0)],
+      maxSalary: [0, Validators.min(0)],
+      currency: ['INR', Validators.required],
+      salaryFrequency: ['Monthly', Validators.required],
+
+      openings: [1, [Validators.required, Validators.min(1)]],
+      expiryDate: ['', Validators.required]
+    });
   }
 
-  nextStep() {
-    if (this.step < 3) this.step++;
+  nextStep(): void {
+    if (this.step < 3) {
+      this.step++;
+    }
   }
 
-  prevStep() {
-    if (this.step > 1) this.step--;
+  prevStep(): void {
+    if (this.step > 1) {
+      this.step--;
+    }
   }
 
-  close() {
-    this.closed.emit(); 
+  close(): void {
+    this.closed.emit();
   }
 
   submit(): void {
@@ -75,41 +91,53 @@ export class CreateJobComponent {
       return;
     }
 
-    const formValue = this.jobForm.value;
+    const v = this.jobForm.value;
 
     const payload: CreateJobRequest = {
-      title: formValue.title!,
-      description: formValue.description!,
-      employmentType: formValue.employmentType!,
-      workMode: formValue.workMode!,
+      title: v.title!,
+      description: v.description!,
+      employmentType: v.employmentType!,
+      workMode: v.workMode!,
 
-      minExperience: Number(formValue.minExperience),
-      maxExperience: Number(formValue.maxExperience),
+      minExperience: Number(v.minExperience),
+      maxExperience: Number(v.maxExperience),
 
-      city: formValue.city!,
-      state: formValue.state!,
-      country: formValue.country!,
+      city: v.city!,
+      state: v.state!,
+      country: v.country!,
 
-      minSalary: Number(formValue.minSalary),
-      maxSalary: Number(formValue.maxSalary),
-      currency: formValue.currency!,
-      salaryFrequency: formValue.salaryFrequency!,
+      minSalary: Number(v.minSalary),
+      maxSalary: Number(v.maxSalary),
+      currency: v.currency!,
+      salaryFrequency: v.salaryFrequency!,
 
-      keySkills: formValue.keySkills!
+      keySkills: v.keySkills
         .split(',')
         .map((s: string) => s.trim()),
 
-      education: formValue.education!,
-      industry: formValue.industry!,
+      education: v.education!,
+      industry: v.industry!,
 
-      openings: Number(formValue.openings),
-      expiryDate: new Date(formValue.expiryDate!).toISOString()
+      openings: Number(v.openings),
+      expiryDate: new Date(v.expiryDate!).toISOString()
     };
 
-    this.jobService.createJob(payload).subscribe(() => {
-      this.router.navigate(['/job-provider/jobs']);
-    });
+    this.jobService.createJob(payload).subscribe({
+      next: () => {
+        // ✅ Show toast
+        this.toastService.show('Job successfully created');
 
-      this.close();
+        // ✅ Close modal
+        this.close();
+
+        // ✅ Redirect to job list
+        this.router.navigate(['/job-provider/jobs'], {
+          queryParams: { refresh: true }
+        });
+      },
+      error: () => {
+        this.toastService.show('Failed to create job');
+      }
+    });
   }
 }

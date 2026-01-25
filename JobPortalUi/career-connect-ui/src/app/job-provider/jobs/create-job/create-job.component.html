@@ -1,161 +1,178 @@
-<!-- 🔥 BACKDROP (click to close) -->
-<!-- <div
-  class="modal-backdrop-custom"
-  (click)="close()">
-</div> -->
+<!-- BACKDROP -->
+<div class="modal-backdrop-custom" (click)="close()"></div>
 
-<div class="modal-header d-flex align-items-center justify-content-between">
+<!-- MODAL -->
+<div class="create-job-modal" (click)="$event.stopPropagation()">
 
-  <h5 class="mb-0 d-flex align-items-center">
-    <i class="bi bi-briefcase-fill me-2"></i>
-    Create New Job
-  </h5>
-
-  <!-- ❌ CLOSE BUTTON (RIGHT ALIGNED) -->
-  <button
-    type="button"
-    class="close-btn"
-    aria-label="Close"
-    (click)="close()">
-    ✕
-  </button>
-
-</div>
-
-<!-- 🔥 MODAL -->
-<div
-  class="create-job-modal"
-  (click)="$event.stopPropagation()">
-
-  <!-- ================= HEADER ================= -->
-  <div class="modal-header">
+  <!-- HEADER -->
+  <div class="modal-header d-flex align-items-center justify-content-between">
     <h5 class="mb-0">
       <i class="bi bi-briefcase-fill me-2"></i>
       Create New Job
     </h5>
-
-    <!-- ❌ CLOSE BUTTON -->
-    <button
-      type="button"
-      class="close-btn"
-      (click)="close()">
-      ✕
-    </button>
+    <button type="button" class="close-btn" (click)="close()">✕</button>
   </div>
 
-  <!-- ================= BODY ================= -->
+  <!-- BODY -->
   <div class="modal-body">
 
     <!-- STEP INDICATOR -->
     <ul class="nav nav-pills justify-content-center mb-4">
       <li class="nav-item">
-        <span class="nav-link" [class.active]="step === 1">
-          Basic
-        </span>
+        <span class="nav-link" [class.active]="step === 1">Basic Info</span>
       </li>
       <li class="nav-item">
-        <span class="nav-link" [class.active]="step === 2">
-          Details
-        </span>
+        <span class="nav-link" [class.active]="step === 2">Details</span>
       </li>
       <li class="nav-item">
-        <span class="nav-link" [class.active]="step === 3">
-          Salary
-        </span>
+        <span class="nav-link" [class.active]="step === 3">Salary & Meta</span>
       </li>
     </ul>
 
-    <!-- FORM -->
-    <form [formGroup]="jobForm">
+    <form [formGroup]="jobForm" novalidate>
 
-      <!-- ===== STEP 1 ===== -->
+      <!-- STEP 1 -->
       <div *ngIf="step === 1">
+
         <div class="mb-3">
           <label class="form-label">Job Title</label>
-          <input class="form-control" formControlName="title">
+          <input type="text" class="form-control" formControlName="title">
         </div>
 
         <div class="mb-3">
-          <label class="form-label">Description</label>
-          <textarea
-            class="form-control"
-            rows="4"
-            formControlName="description">
-          </textarea>
+          <label class="form-label">Job Description</label>
+          <textarea class="form-control" rows="5" formControlName="description"></textarea>
         </div>
-      </div>
 
-      <!-- ===== STEP 2 ===== -->
-      <div *ngIf="step === 2">
-        <div class="row">
-          <div class="col-md-6 mb-3">
-            <label class="form-label">City</label>
-            <input class="form-control" formControlName="city">
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label class="form-label">Employment Type</label>
+            <select class="form-select" formControlName="employmentType">
+              <option value="FullTime">Full Time</option>
+              <option value="PartTime">Part Time</option>
+              <option value="Contract">Contract</option>
+            </select>
           </div>
 
-          <div class="col-md-6 mb-3">
+          <div class="col-md-6">
+            <label class="form-label">Work Mode</label>
+            <select class="form-select" formControlName="workMode">
+              <option value="Onsite">Onsite</option>
+              <option value="Remote">Remote</option>
+              <option value="Hybrid">Hybrid</option>
+            </select>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- STEP 2 -->
+      <div *ngIf="step === 2" class="pb-3">
+
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label class="form-label">Min Experience (Years)</label>
+            <input type="number" class="form-control" formControlName="minExperience">
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Max Experience (Years)</label>
+            <input type="number" class="form-control" formControlName="maxExperience">
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-md-4">
+            <label class="form-label">City</label>
+            <input type="text" class="form-control" formControlName="city">
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">State</label>
+            <input type="text" class="form-control" formControlName="state">
+          </div>
+
+          <div class="col-md-4">
             <label class="form-label">Country</label>
-            <input class="form-control" formControlName="country">
+            <input type="text" class="form-control" formControlName="country">
           </div>
         </div>
 
         <div class="mb-3">
           <label class="form-label">Key Skills</label>
-          <input
-            class="form-control"
-            placeholder="Angular, .NET, Azure"
-            formControlName="keySkills">
+          <input type="text" class="form-control" formControlName="keySkills">
         </div>
+
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <label class="form-label">Education</label>
+            <input type="text" class="form-control" formControlName="education">
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Industry</label>
+            <input type="text" class="form-control" formControlName="industry">
+          </div>
+        </div>
+
       </div>
 
-      <!-- ===== STEP 3 ===== -->
-      <div *ngIf="step === 3">
-        <div class="row">
-          <div class="col-md-6 mb-3">
-            <label class="form-label">Min Salary</label>
-            <input
-              type="number"
-              class="form-control"
-              formControlName="minSalary">
-          </div>
 
-          <div class="col-md-6 mb-3">
+      <!-- STEP 3 -->
+      <div *ngIf="step === 3">
+
+        <div class="row mb-3">
+          <div class="col-md-4">
+            <label class="form-label">Min Salary</label>
+            <input type="number" class="form-control" formControlName="minSalary">
+          </div>
+          <div class="col-md-4">
             <label class="form-label">Max Salary</label>
-            <input
-              type="number"
-              class="form-control"
-              formControlName="maxSalary">
+            <input type="number" class="form-control" formControlName="maxSalary">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Currency</label>
+            <input type="text" class="form-control" formControlName="currency">
           </div>
         </div>
+
+        <div class="mb-3">
+          <label class="form-label">Salary Frequency</label>
+          <select class="form-select" formControlName="salaryFrequency">
+            <option value="Monthly">Monthly</option>
+            <option value="Yearly">Yearly</option>
+          </select>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label class="form-label">Number of Openings</label>
+            <input type="number" class="form-control" formControlName="openings">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Expiry Date</label>
+            <input type="date" class="form-control" formControlName="expiryDate">
+          </div>
+        </div>
+
       </div>
 
     </form>
   </div>
 
-  <!-- ================= FOOTER ================= -->
+  <!-- FOOTER -->
   <div class="modal-footer d-flex justify-content-between">
-
-    <button
-      class="btn btn-outline-secondary"
-      (click)="prevStep()"
-      [disabled]="step === 1">
+    <button class="btn btn-outline-secondary" (click)="prevStep()" [disabled]="step === 1">
       Back
     </button>
 
-    <button
-      class="btn btn-primary"
-      *ngIf="step < 3"
-      (click)="nextStep()">
+    <button class="btn btn-primary" *ngIf="step < 3" (click)="nextStep()">
       Next
     </button>
 
-    <button
-      class="btn btn-success"
-      *ngIf="step === 3"
-      (click)="submit()">
+    <button class="btn btn-success" *ngIf="step === 3" (click)="submit()">
       Post Job
     </button>
-
   </div>
 
 </div>

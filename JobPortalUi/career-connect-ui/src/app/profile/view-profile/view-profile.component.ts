@@ -4,6 +4,7 @@ import { Router, RouterModule } from '@angular/router';
 
 import { ProfileService } from '../../core/services/profile.service';
 import { ProfileResponse } from '../../core/models/profile/profile-response.model';
+import {AuthService} from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-view-profile',
@@ -18,7 +19,8 @@ export class ViewProfileComponent implements OnInit {
 
   constructor(
     private profileService: ProfileService,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -38,7 +40,7 @@ export class ViewProfileComponent implements OnInit {
   }
 
   logout(): void {
-    localStorage.removeItem('token');
-    this.router.navigate(['/login']);
+    this.authService.logout();
   }
+   
 }
