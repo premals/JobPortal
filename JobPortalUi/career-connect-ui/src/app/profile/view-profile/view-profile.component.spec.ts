@@ -1,4 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ProfileService } from '../../core/services/profile.service';
+import { AuthService } from '../../core/services/auth.service';
+import { createProfileServiceMock, createAuthServiceMock } from '../../../test-helpers/mocks';
 
 import { ViewProfileComponent } from './view-profile.component';
 
@@ -8,7 +11,11 @@ describe('ViewProfileComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ViewProfileComponent]
+      imports: [ViewProfileComponent],
+      providers: [
+        { provide: ProfileService, useValue: createProfileServiceMock() },
+        { provide: AuthService, useValue: createAuthServiceMock() }
+      ]
     })
     .compileComponents();
 

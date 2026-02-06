@@ -1,30 +1,208 @@
 <div class="applications-page">
 
-  <h3 class="page-title">Job Applications</h3>
-  <p class="page-subtitle">
-    Review candidates who applied for this job
-  </p>
+  <div class="invite-modal-backdrop" *ngIf="showInviteModal" (click)="closeInviteModal()"></div>
+  <div class="invite-modal" *ngIf="showInviteModal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h5>Interview Invitation</h5>
+      <button class="close-btn" (click)="closeInviteModal()">&times;</button>
+    </div>
+    <div class="modal-body" *ngIf="settings; else missingSettings">
+      <p class="modal-subtitle">
+        Schedule interview slots and choose the difficulty level.
+      </p>
+
+      <div class="form-group">
+        <label>Difficulty</label>
+        <select class="form-select" [(ngModel)]="inviteDifficulty">
+          <option *ngFor="let option of difficultyOptions" [value]="option">
+            {{ option }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group" *ngFor="let slot of inviteSlots; let i = index; trackBy: trackSlot">
+        <label>Slot {{ i + 1 }}</label>
+        <input type="datetime-local" class="form-control" [(ngModel)]="inviteSlots[i]">
+      </div>
+
+      <div class="invite-meta">
+        <span>Slot duration: {{ settings.interview.slotDurationMinutes }} minutes</span>
+        <span>Questions: {{ inviteQuestionsCount }}</span>
+      </div>
+    </div>
+    <ng-template #missingSettings>
+      <div class="modal-body">
+        <p class="modal-subtitle">
+          Settings are required before sending invites. Please open Settings to configure
+          difficulty levels, slot count, and AI options.
+        </p>
+      </div>
+    </ng-template>
+    <div class="modal-footer">
+      <button class="btn btn-outline-secondary" (click)="closeInviteModal()">Cancel</button>
+      <button class="btn btn-primary" (click)="sendInvite()" [disabled]="!settings">Send Invite</button>
+    </div>
+  </div>
+
+  <div class="report-modal-backdrop" *ngIf="showReportModal" (click)="closeReportModal()"></div>
+  <div class="report-modal" *ngIf="showReportModal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h5>Interview Report</h5>
+        <p class="modal-subtitle">
+          {{ reportTarget?.fullName }} · {{ reportTarget?.email }}
+        </p>
+      </div>
+      <button class="close-btn" (click)="closeReportModal()">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <div *ngIf="reportLoading" class="text-center py-4">
+        <div class="spinner-border text-primary"></div>
+      </div>
+
+      <div class="report-empty" *ngIf="!reportLoading && reportError">
+        <i class="bi bi-clipboard-x"></i>
+        <h6>{{ reportError }}</h6>
+        <p>Once the interview is completed, the report will appear here.</p>
+      </div>
+
+      <div *ngIf="!reportLoading && reportData" class="report-body">
+        <div class="report-summary">
+          <div class="score-card">
+            <span>Overall Score</span>
+            <strong>{{ reportData.evaluation?.overallScore ?? '-' }}/10</strong>
+            <div class="score-bar">
+              <span [style.width.%]="scorePercent(reportData.evaluation?.overallScore || 0)"></span>
+            </div>
+          </div>
+          <div class="summary-card">
+            <h6>Summary</h6>
+            <p>
+              {{ reportData.evaluation?.summary || 'Interview evaluation is pending.' }}
+            </p>
+          </div>
+        </div>
+
+        <div class="report-grid">
+          <div class="report-card">
+            <h6>Interview Details</h6>
+            <div class="detail-row">
+              <span>Status</span>
+              <strong>{{ reportData.status || '-' }}</strong>
+            </div>
+            <div class="detail-row">
+              <span>Difficulty</span>
+              <strong>{{ reportData.difficulty || '-' }}</strong>
+            </div>
+            <div class="detail-row">
+              <span>Skills</span>
+              <strong>{{ reportData.skills?.join(', ') || '-' }}</strong>
+            </div>
+            <div class="detail-row">
+              <span>Questions</span>
+              <strong>{{ reportData.totalQuestions || 0 }}</strong>
+            </div>
+            <div class="detail-row">
+              <span>Evaluated</span>
+              <strong>{{ reportData.evaluation?.evaluatedAt | date:'medium' }}</strong>
+            </div>
+          </div>
+
+          <div class="report-card">
+            <h6>Skill Scores</h6>
+            <div class="muted" *ngIf="!(reportData.evaluation?.skillScores?.length)">
+              No skill-level scores available yet.
+            </div>
+            <div class="skill-row" *ngFor="let skill of reportData.evaluation?.skillScores; trackBy: trackSkill">
+              <div class="skill-head">
+                <span>{{ skill.skill }}</span>
+                <strong>{{ skill.score }}/10</strong>
+              </div>
+              <div class="skill-bar">
+                <span [style.width.%]="scorePercent(skill.score)"></span>
+              </div>
+              <p class="skill-feedback">{{ skill.feedback }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-outline-secondary" (click)="closeReportModal()">Close</button>
+    </div>
+  </div>
+
+  <div class="page-hero">
+    <div>
+      <span class="eyebrow">Applications</span>
+      <h2 class="page-title">Candidate Pipeline</h2>
+      <p class="page-subtitle">
+        Review, shortlist, or reject candidates in seconds
+      </p>
+    </div>
+    <div class="hero-actions">
+      <a class="btn btn-outline-light" routerLink="/job-provider/jobs">
+        <i class="bi bi-arrow-left me-2"></i>
+        Back to Jobs
+      </a>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <i class="bi bi-search"></i>
+      <input
+        type="text"
+        class="form-control"
+        placeholder="Search candidate or email"
+        [(ngModel)]="searchTerm"
+        (input)="applyFilters()">
+    </div>
+
+    <div class="filter-box">
+      <select
+        class="form-select"
+        [(ngModel)]="statusFilter"
+        (change)="applyFilters()">
+        <option value="all">All statuses</option>
+        <option value="Applied">Applied</option>
+        <option value="Shortlisted">Shortlisted</option>
+        <option value="Rejected">Rejected</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="settings-warning" *ngIf="settingsError">
+    Settings could not be loaded. Shortlist and AI actions are disabled until Settings are available.
+  </div>
 
   <div *ngIf="isLoading" class="text-center py-5">
     <div class="spinner-border text-primary"></div>
   </div>
 
-  <div *ngIf="!isLoading && applications.length === 0"
-       class="alert alert-info">
-    No applications received yet.
+  <div *ngIf="!isLoading && filteredApplications.length === 0"
+       class="empty-state">
+    <i class="bi bi-inbox"></i>
+    <h5>No applications yet</h5>
+    <p>When candidates apply, you will see them here.</p>
   </div>
 
   <div class="row" *ngIf="!isLoading">
 
     <div class="col-lg-6 mb-4"
-         *ngFor="let app of applications">
+         *ngFor="let app of filteredApplications">
 
       <div class="application-card">
 
-        <div class="card-header">
-          <div>
-            <h5>{{ app.candidateName }}</h5>
-            <span class="email">{{ app.email }}</span>
+        <div class="card-top">
+          <div class="candidate">
+            <div class="avatar">{{ getInitials(app.fullName) }}</div>
+            <div>
+              <h5>{{ app.fullName }}</h5>
+              <span class="email">{{ app.email }}</span>
+            </div>
           </div>
 
           <span class="status-badge"
@@ -35,14 +213,66 @@
 
         <div class="card-body">
           <div class="info-row">
-            <span>Experience</span>
-            <strong>{{ app.experienceYears }} years</strong>
+            <span>Phone</span>
+            <strong>{{ app.phone || '-' }}</strong>
           </div>
 
           <div class="info-row">
             <span>Applied On</span>
-            <strong>{{ app.appliedOn | date:'mediumDate' }}</strong>
+            <strong>{{ app.appliedAt | date:'mediumDate' }}</strong>
           </div>
+
+          <div class="info-row" *ngIf="app.resumeUrl">
+            <span>Resume</span>
+            <a [href]="app.resumeUrl" target="_blank" rel="noopener">
+              View Resume
+            </a>
+          </div>
+        </div>
+
+        <div class="card-actions">
+          <button
+            class="btn btn-outline-info"
+            (click)="suggestWithAi(app)"
+            [disabled]="!settings?.ai?.enableShortlistSuggestions || settingsLoading || aiLoadingIds.has(app.id ?? app.jobSeekerId)">
+            <i class="bi bi-stars me-1"></i>
+            AI Suggest
+          </button>
+
+          <button
+            class="btn btn-outline-primary"
+            (click)="openInviteModal(app)"
+            [disabled]="settingsLoading || settingsError">
+            <i class="bi bi-calendar2-week me-1"></i>
+            Shortlist & Invite
+          </button>
+
+          <button
+            class="btn btn-outline-dark"
+            (click)="openReportModal(app)">
+            <i class="bi bi-clipboard2-check me-1"></i>
+            View Report
+          </button>
+
+          <button
+            class="btn btn-outline-danger"
+            (click)="updateStatus(app, 'Rejected')"
+            [disabled]="app.status === 'Rejected' || isUpdating(app)">
+            <i class="bi bi-x-circle me-1"></i>
+            Reject
+          </button>
+        </div>
+
+        <div class="ai-suggestion" *ngIf="app.aiSuggestion">
+          <div class="ai-pill">
+            <span>AI Recommendation</span>
+            <strong>{{ app.aiSuggestion.recommendation }}</strong>
+          </div>
+          <div class="ai-score">
+            <span>Score</span>
+            <strong>{{ app.aiSuggestion.score }}/10</strong>
+          </div>
+          <p class="ai-reason">{{ app.aiSuggestion.reasoning }}</p>
         </div>
 
       </div>

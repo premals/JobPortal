@@ -1,32 +1,145 @@
-<div class="container mt-5">
-
-  <div class="card mx-auto" style="max-width: 600px;">
-    <div class="card-body">
-
-      <h3 class="card-title mb-4">My Profile</h3>
-
-      <div *ngIf="isLoading" class="text-center">
-        <div class="spinner-border"></div>
+<div class="profile-page">
+  <div class="profile-hero">
+    <div class="hero-main">
+      <div class="avatar">{{ profile?.fullName?.[0] || '?' }}</div>
+      <div>
+        <span class="eyebrow">Profile</span>
+        <h2>{{ profile?.fullName || 'Profile' }}</h2>
+        <p>{{ profile?.email }}</p>
       </div>
-
-      <div *ngIf="!isLoading && profile">
-
-        <p><strong>Full Name:</strong> {{ profile.fullName || '-' }}</p>
-        <p><strong>Email:</strong> {{ profile.email }}</p>
-        <p><strong>User Type:</strong> {{ profile.userType }}</p>
-
-        <div class="d-flex gap-2 mt-4">
-          <button class="btn btn-primary w-50" (click)="editProfile()">
-            Edit Profile
-          </button>
-          <button class="btn btn-danger w-50" (click)="logout()">
-            Logout
-          </button>
-        </div>
-
-      </div>
-
+    </div>
+    <div class="hero-actions" *ngIf="!embedded">
+      <button class="btn btn-primary" (click)="editProfile()">Edit Profile</button>
+      <button class="btn btn-outline-light" (click)="logout()">Logout</button>
+    </div>
+    <div class="hero-actions" *ngIf="embedded">
+      <button class="btn btn-primary" (click)="editProfile()">Edit Profile</button>
     </div>
   </div>
 
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary"></div>
+  </div>
+
+  <div class="profile-grid" *ngIf="!isLoading">
+
+    <section class="profile-card" *ngIf="userType === 'JobProvider'">
+      <div class="company-header">
+        <div class="company-logo" [class.has-logo]="jobProviderProfile?.logoUrl">
+          <img *ngIf="jobProviderProfile?.logoUrl" [src]="jobProviderProfile?.logoUrl" alt="Company logo">
+          <span *ngIf="!jobProviderProfile?.logoUrl">
+            {{ jobProviderProfile?.companyName?.[0] || '?' }}
+          </span>
+        </div>
+        <div>
+          <h5>Company Overview</h5>
+          <p class="muted">Showcase your company for candidates.</p>
+        </div>
+      </div>
+
+      <div class="company-tags">
+        <span class="tag" *ngIf="jobProviderProfile?.industry">{{ jobProviderProfile?.industry }}</span>
+        <span class="tag" *ngIf="jobProviderProfile?.companySize">{{ jobProviderProfile?.companySize }}</span>
+        <span class="tag" *ngIf="jobProviderProfile?.location">{{ jobProviderProfile?.location }}</span>
+        <span class="tag muted" *ngIf="!jobProviderProfile?.industry && !jobProviderProfile?.companySize && !jobProviderProfile?.location">
+          Add industry, size, and location to complete the snapshot.
+        </span>
+      </div>
+
+      <div class="info-row">
+        <span>Company Name</span>
+        <strong>{{ jobProviderProfile?.companyName || '-' }}</strong>
+      </div>
+      <div class="info-row">
+        <span>Brand Name</span>
+        <strong>{{ jobProviderProfile?.brandName || '-' }}</strong>
+      </div>
+      <div class="info-row">
+        <span>Website</span>
+        <strong>
+          <a *ngIf="jobProviderProfile?.website" [href]="jobProviderProfile?.website" target="_blank" rel="noopener">
+            {{ jobProviderProfile?.website }}
+          </a>
+          <span *ngIf="!jobProviderProfile?.website">-</span>
+        </strong>
+      </div>
+    </section>
+
+    <section class="profile-card" *ngIf="userType === 'JobProvider'">
+      <h5>Contact</h5>
+      <p class="muted">Keep your hiring contact details updated.</p>
+
+      <div class="info-row">
+        <span>Email</span>
+        <strong>{{ profile?.email }}</strong>
+      </div>
+      <div class="info-row">
+        <span>Phone</span>
+        <strong>{{ jobProviderProfile?.phone || '-' }}</strong>
+      </div>
+      <div class="info-row">
+        <span>LinkedIn</span>
+        <strong>
+          <a *ngIf="jobProviderProfile?.linkedInUrl" [href]="jobProviderProfile?.linkedInUrl" target="_blank" rel="noopener">
+            View LinkedIn
+          </a>
+          <span *ngIf="!jobProviderProfile?.linkedInUrl">-</span>
+        </strong>
+      </div>
+      <div class="info-row">
+        <span>Twitter</span>
+        <strong>
+          <a *ngIf="jobProviderProfile?.twitterUrl" [href]="jobProviderProfile?.twitterUrl" target="_blank" rel="noopener">
+            View Twitter
+          </a>
+          <span *ngIf="!jobProviderProfile?.twitterUrl">-</span>
+        </strong>
+      </div>
+    </section>
+
+    <section class="profile-card full" *ngIf="userType === 'JobProvider'">
+      <h5>About The Company</h5>
+      <p class="muted">Tell candidates what makes your team special.</p>
+      <div class="about">
+        {{ jobProviderProfile?.about || 'Add a short company story to build trust with candidates.' }}
+      </div>
+    </section>
+
+    <section class="profile-card" *ngIf="userType === 'JobSeeker'">
+      <h5>Career Summary</h5>
+      <p class="muted">Your public snapshot for recruiters.</p>
+      <div class="info-row">
+        <span>Headline</span>
+        <strong>{{ jobSeekerProfile?.headline || '-' }}</strong>
+      </div>
+      <div class="info-row">
+        <span>Experience</span>
+        <strong>{{ jobSeekerProfile?.experienceYears || 0 }} years</strong>
+      </div>
+      <div class="info-row">
+        <span>Location</span>
+        <strong>{{ jobSeekerProfile?.location || '-' }}</strong>
+      </div>
+      <div class="info-row">
+        <span>Skills</span>
+        <strong>{{ jobSeekerProfile?.skills?.join(', ') || '-' }}</strong>
+      </div>
+    </section>
+
+    <section class="profile-card" *ngIf="userType === 'JobSeeker'">
+      <h5>Resume Builder</h5>
+      <p class="muted">Jump into the ATS-friendly resume builder.</p>
+      <button class="btn btn-outline-primary" routerLink="/job-seeker/resume">
+        Open Resume Builder
+      </button>
+    </section>
+
+    <section class="profile-card full" *ngIf="userType === 'JobSeeker'">
+      <h5>Professional Summary</h5>
+      <p class="muted">The first paragraph recruiters see.</p>
+      <div class="about">
+        {{ jobSeekerProfile?.summary || 'Add a summary to increase your profile strength.' }}
+      </div>
+    </section>
+  </div>
 </div>

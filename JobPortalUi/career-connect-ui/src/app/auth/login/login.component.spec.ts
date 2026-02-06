@@ -1,4 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { AuthService } from '../../core/services/auth.service';
+import { Router, ActivatedRoute } from '@angular/router';
+import { createAuthServiceMock, RouterStub, ActivatedRouteStub } from '../../../test-helpers/mocks';
 
 import { LoginComponent } from './login.component';
 
@@ -8,7 +11,12 @@ describe('LoginComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [LoginComponent]
+      imports: [LoginComponent],
+      providers: [
+        { provide: AuthService, useValue: createAuthServiceMock() },
+        { provide: Router, useValue: RouterStub },
+        { provide: ActivatedRoute, useValue: ActivatedRouteStub }
+      ]
     })
     .compileComponents();
 

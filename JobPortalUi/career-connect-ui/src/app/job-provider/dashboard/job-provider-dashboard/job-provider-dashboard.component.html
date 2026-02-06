@@ -1,18 +1,284 @@
-<div class="row mt-4">
-  <div class="col-md-4">
-    <div class="card text-bg-primary">
-      <div class="card-body">
-        <h5>Total Jobs</h5>
-        <h2>—</h2>
+<section class="dashboard-hero">
+  <div class="hero-copy">
+    <span class="eyebrow">Job Provider</span>
+    <h2>Hiring Command Center</h2>
+    <p>
+      Monitor openings, spot priority roles, and move top candidates fast.
+    </p>
+    <div class="hero-chips">
+      <span class="chip">
+        <i class="bi bi-briefcase-fill"></i>
+        {{ activeJobs }} Active
+      </span>
+      <span class="chip">
+        <i class="bi bi-calendar-event"></i>
+        {{ expiringSoonCount }} Expiring soon
+      </span>
+      <span class="chip">
+        <i class="bi bi-people-fill"></i>
+        {{ totalOpenings }} Openings
+      </span>
+    </div>
+  </div>
+
+  <div class="hero-panel">
+    <div class="metric">
+      <span>Total Jobs</span>
+      <strong>{{ totalJobs }}</strong>
+      <small>{{ activeRatio }}% Active roles</small>
+    </div>
+    <div class="progress-track">
+      <span class="progress-fill" [style.width.%]="activeRatio"></span>
+    </div>
+    <div class="mini-grid">
+      <div>
+        <span>Active</span>
+        <strong>{{ activeJobs }}</strong>
+      </div>
+      <div>
+        <span>Closed</span>
+        <strong>{{ closedJobs }}</strong>
+      </div>
+      <div>
+        <span>Draft</span>
+        <strong>{{ draftJobs }}</strong>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="stats-grid candidate-stats">
+  <div class="stat-card">
+    <span>Total Applicants</span>
+    <strong>{{ applicantTotals }}</strong>
+  </div>
+  <div class="stat-card accent">
+    <span>Applied</span>
+    <strong>{{ applicantApplied }}</strong>
+  </div>
+  <div class="stat-card success">
+    <span>Shortlisted</span>
+    <strong>{{ applicantShortlisted }}</strong>
+  </div>
+  <div class="stat-card danger">
+    <span>Rejected</span>
+    <strong>{{ applicantRejected }}</strong>
+  </div>
+  <div class="stat-card muted">
+    <span>Hired</span>
+    <strong>{{ applicantHired }}</strong>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-lg-8 mb-4">
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <h5>Recent Applicants</h5>
+          <span class="panel-subtitle">Latest candidates across your roles</span>
+        </div>
+        <a class="link-button" routerLink="/job-provider/jobs">
+          Choose a job
+          <i class="bi bi-arrow-right-short"></i>
+        </a>
+      </div>
+
+      <div *ngIf="isLoadingApplications" class="text-center py-4">
+        <div class="spinner-border text-primary"></div>
+      </div>
+
+      <div *ngIf="!isLoadingApplications && recentApplicants.length === 0" class="empty-state">
+        <i class="bi bi-people"></i>
+        <p>No applicants yet. Promote your jobs to get traction.</p>
+      </div>
+
+      <div *ngIf="!isLoadingApplications">
+        <div class="app-row" *ngFor="let app of recentApplicants">
+          <div class="app-info">
+            <div class="avatar">{{ getInitials(app.fullName) }}</div>
+            <div>
+              <h6>{{ app.fullName }}</h6>
+              <div class="app-meta">
+                <span>{{ app.email }}</span>
+                <span>{{ app.jobTitle }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="app-right">
+            <span class="status-pill" [ngClass]="app.status?.toLowerCase()">
+              {{ app.status }}
+            </span>
+            <small>{{ app.appliedAt | date:'mediumDate' }}</small>
+            <a class="app-link" [routerLink]="['/job-provider/jobs', app.jobId, 'applications']">
+              View applicants
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="col-md-4">
-    <div class="card text-bg-success">
-      <div class="card-body">
-        <h5>Active Jobs</h5>
-        <h2>—</h2>
+  <div class="col-lg-4 mb-4">
+    <div class="panel action-panel">
+      <h5>Quick Actions</h5>
+      <p>Stay ahead with a focused hiring flow.</p>
+      <div class="action-buttons">
+        <a class="btn btn-light w-100" routerLink="/job-provider/jobs">
+          <i class="bi bi-plus-circle me-2"></i>
+          Post a job
+        </a>
+        <a class="btn btn-outline-light w-100" routerLink="/job-provider/jobs">
+          <i class="bi bi-folder2-open me-2"></i>
+          Select job to review
+        </a>
+      </div>
+      <div class="pulse-card">
+        <span>Expiring in 14 days</span>
+        <strong>{{ expiringSoonCount }}</strong>
+      </div>
+    </div>
+
+    <div class="panel focus-panel">
+      <h5>Hiring Focus</h5>
+      <ul class="tips">
+        <li>Review applications within 24 hours</li>
+        <li>Shortlist top 3 candidates per role</li>
+        <li>Close filled roles to keep listings clean</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-lg-8 mb-4">
+    <div class="panel calendar-panel">
+      <div class="panel-header">
+        <div>
+          <h5>Interview Calendar</h5>
+          <span class="panel-subtitle">Scheduled interviews with accepted slots</span>
+        </div>
+        <div class="calendar-nav">
+          <button class="icon-btn" (click)="prevMonth()">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <span class="month-label">{{ calendarMonth | date:'MMMM y' }}</span>
+          <button class="icon-btn" (click)="nextMonth()">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="calendarLoading" class="text-center py-4">
+        <div class="spinner-border text-primary"></div>
+      </div>
+
+      <div *ngIf="!calendarLoading && calendarError" class="empty-state">
+        <i class="bi bi-calendar-x"></i>
+        <p>{{ calendarError }}</p>
+      </div>
+
+      <div class="calendar-grid" *ngIf="!calendarLoading && !calendarError">
+        <div class="calendar-weekday" *ngFor="let day of calendarWeekdays">
+          {{ day }}
+        </div>
+        <button
+          class="calendar-day"
+          *ngFor="let day of calendarDays"
+          [class.outside]="!day.inMonth"
+          [class.today]="isToday(day)"
+          [class.selected]="isSelected(day)"
+          (click)="selectDay(day)">
+          <span class="day-number">{{ day.label }}</span>
+          <span class="day-count" *ngIf="day.count > 0">{{ day.count }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4 mb-4">
+    <div class="panel calendar-detail">
+      <div class="panel-header">
+        <div>
+          <h5>Interview List</h5>
+          <span class="panel-subtitle">
+            {{ selectedDate ? (selectedDate | date:'fullDate') : 'Select a date' }}
+          </span>
+        </div>
+      </div>
+
+      <div *ngIf="!calendarLoading && selectedInvites.length === 0" class="empty-state">
+        <i class="bi bi-calendar2"></i>
+        <p>No interviews scheduled for this day.</p>
+      </div>
+
+      <div *ngIf="selectedInvites.length > 0" class="interview-list">
+        <div class="interview-item" *ngFor="let invite of selectedInvites">
+          <div class="interview-time">
+            <strong>{{ invite.selectedSlot | date:'shortTime' }}</strong>
+            <span>{{ invite.difficulty || 'Medium' }}</span>
+          </div>
+          <div class="interview-info">
+            <h6>{{ invite.candidateName || invite.candidateEmail || 'Candidate' }}</h6>
+            <p>{{ invite.jobTitle }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-12 mb-4">
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <h5>Recent Jobs</h5>
+          <span class="panel-subtitle">Latest postings and quick status</span>
+        </div>
+        <a class="link-button" routerLink="/job-provider/jobs">
+          Manage Jobs
+          <i class="bi bi-arrow-right-short"></i>
+        </a>
+      </div>
+
+      <div *ngIf="isLoading" class="text-center py-4">
+        <div class="spinner-border text-primary"></div>
+      </div>
+
+      <div *ngIf="!isLoading && recentJobs.length === 0" class="empty-state">
+        <i class="bi bi-briefcase"></i>
+        <p>No jobs yet. Create one to get started.</p>
+      </div>
+
+      <div *ngIf="!isLoading">
+        <div class="job-row" *ngFor="let job of recentJobs">
+          <div class="job-info">
+            <h6>{{ job.title }}</h6>
+            <div class="job-meta">
+              <span>
+                <i class="bi bi-geo-alt"></i>
+                {{ job.city }}, {{ job.country }}
+              </span>
+              <span>
+                <i class="bi bi-people"></i>
+                {{ job.openings }} openings
+              </span>
+              <span *ngIf="job.postedAt">
+                <i class="bi bi-clock"></i>
+                {{ job.postedAt | date:'mediumDate' }}
+              </span>
+            </div>
+          </div>
+          <div class="job-right">
+            <span class="status-pill" [ngClass]="job.status?.toLowerCase()">
+              {{ job.status }}
+            </span>
+            <a class="job-link" [routerLink]="['/job-provider/jobs', job.id, 'applications']">
+              Applications
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   </div>

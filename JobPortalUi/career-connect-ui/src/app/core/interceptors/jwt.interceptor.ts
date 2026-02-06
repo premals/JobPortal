@@ -2,7 +2,7 @@ import {
   HttpInterceptorFn,
   HttpErrorResponse
 } from '@angular/common/http';
-import { inject } from '@angular/core';
+import { inject, Injector } from '@angular/core';
 import { AuthService } from '../services/auth.service';
 import { catchError, switchMap, throwError } from 'rxjs';
 
@@ -15,8 +15,15 @@ let isRefreshing = false;
  */
 export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
 
-  const authService = inject(AuthService);
-  const accessToken = localStorage.getItem('accessToken');
+  // Use Injector to lazily resolve AuthService at runtime to avoid circular
+  // dependency between HttpClient <-> interceptors <-> AuthService
+  const injector = inject(Injector);
+  const isBrowser = typeof window !== 'undefined' && typeof localStorage !== 'undefined';
+  const accessToken = isBrowser ? localStorage.getItem('accessToken') : null;
+
+  if (!isBrowser) {
+    return next(req);
+  }
 
   // Skip interceptor for refresh token API
   if (req.url.includes('/refresh-token')) {
@@ -38,6 +45,9 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
       // Access token expired
       if (error.status === 401 && !isRefreshing) {
         isRefreshing = true;
+
+        // Resolve AuthService lazily to avoid circular provider initialization
+        const authService = injector.get(AuthService);
 
         return authService.refreshToken().pipe(
           switchMap(res => {

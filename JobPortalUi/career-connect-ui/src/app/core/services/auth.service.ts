@@ -20,9 +20,14 @@ export class AuthService {
     private router: Router
   ) {}
 
+  private canUseStorage(): boolean {
+    return typeof window !== 'undefined' && typeof localStorage !== 'undefined';
+  }
 
   refreshToken(): Observable<any> {
-  const refreshToken = localStorage.getItem('refreshToken');
+  const refreshToken = this.canUseStorage()
+    ? localStorage.getItem('refreshToken')
+    : null;
 
   return this.http.post<any>(
     `${this.baseUrl}/identity/refresh-token`,
@@ -30,12 +35,14 @@ export class AuthService {
   ).pipe(
     tap(res => {
       // Update tokens
-      localStorage.setItem('accessToken', res.accessToken);
-      localStorage.setItem('refreshToken', res.refreshToken);
+      if (this.canUseStorage()) {
+        localStorage.setItem('accessToken', res.accessToken);
+        localStorage.setItem('refreshToken', res.refreshToken);
 
         localStorage.setItem('userType', res.profile.userType);
         localStorage.setItem('userId', res.profile.userId);
         localStorage.setItem('email', res.profile.email);
+      }
 
     })
   );
@@ -45,7 +52,9 @@ export class AuthService {
  * Logout user
  */
 logout(): void {
-  localStorage.clear();
+  if (this.canUseStorage()) {
+    localStorage.clear();
+  }
   this.router.navigate(['/login']);
 }
 

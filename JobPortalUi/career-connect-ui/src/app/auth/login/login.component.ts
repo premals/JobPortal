@@ -18,13 +18,15 @@ import { AuthService } from '../../core/services/auth.service';
     ReactiveFormsModule,
     RouterModule
   ],
-  templateUrl: './login.component.html'
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.scss']
 })
 export class LoginComponent {
 
   loginForm!: FormGroup;
   isLoading = false;
   errorMessage = '';
+  showPassword = false;
 
   constructor(
     private fb: FormBuilder,
@@ -75,5 +77,9 @@ export class LoginComponent {
         this.isLoading = false;
       }
     });
+  }
+
+  togglePassword(): void {
+    this.showPassword = !this.showPassword;
   }
 }

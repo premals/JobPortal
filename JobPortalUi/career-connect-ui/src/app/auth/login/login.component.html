@@ -1,44 +1,107 @@
-<div class="auth-page">
-  <div class="auth-card">
-
-    <h2 class="auth-title">Login</h2>
-
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-
-      <div class="mb-3">
-        <label class="form-label">Email</label>
-        <input
-          type="email"
-          class="form-control"
-          formControlName="email" />
+<section class="auth-shell">
+  <div class="auth-left">
+    <div class="brand-block">
+      <div class="brand-mark">CC</div>
+      <div>
+        <div class="brand-title">Career Connect</div>
+        <div class="brand-sub">One login for hiring and jobs</div>
       </div>
+    </div>
 
-      <div class="mb-3">
-        <label class="form-label">Password</label>
-        <input
-          type="password"
-          class="form-control"
-          formControlName="password" />
+    <div class="hero-copy">
+      <span class="hero-kicker">Unified Login</span>
+      <h1>Hire and get hired from one place.</h1>
+      <p>
+        Career Connect gives job seekers and recruiters a single, secure entry
+        point powered by JWT. No extra organization step required.
+      </p>
+    </div>
+
+    <div class="role-pills">
+      <span class="pill">Job Seeker</span>
+      <span class="pill">Job Provider</span>
+      <span class="pill">Admin</span>
+    </div>
+
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h4>Unified access</h4>
+        <p>One account, role-aware dashboards.</p>
       </div>
-
-      <div *ngIf="errorMessage" class="alert alert-danger">
-        {{ errorMessage }}
+      <div class="feature-card">
+        <h4>Faster decisions</h4>
+        <p>Shortlist, schedule, and interview in minutes.</p>
       </div>
-
-      <button
-        class="btn btn-primary w-100"
-        type="submit"
-        [disabled]="loginForm.invalid || isLoading">
-
-        {{ isLoading ? 'Signing in...' : 'Login' }}
-      </button>
-
-      <div class="auth-links mt-3">
-        <a routerLink="/register">Create account</a> |
-        <a routerLink="/forgot-password">Forgot password?</a>
+      <div class="feature-card">
+        <h4>Candidate focus</h4>
+        <p>Profiles, resumes, and ATS-friendly details.</p>
       </div>
+    </div>
 
-    </form>
-
+    <div class="insight-strip">
+      <div>
+        <span>Authentication</span>
+        <strong>JWT only</strong>
+      </div>
+      <div>
+        <span>Access control</span>
+        <strong>Role based</strong>
+      </div>
+      <div>
+        <span>Experience</span>
+        <strong>Unified UI</strong>
+      </div>
+    </div>
   </div>
-</div>
+
+  <div class="auth-right">
+    <div class="auth-card">
+      <div class="auth-header">
+        <h2>Sign in</h2>
+        <p>Single login for job seekers and recruiters.</p>
+      </div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <div class="mb-3">
+          <label class="form-label">Email</label>
+          <input
+            type="email"
+            class="form-control"
+            placeholder="you@company.com"
+            formControlName="email">
+          <div class="helper">We will route you to the right dashboard.</div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          <div class="password-field">
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              class="form-control"
+              placeholder="Enter your password"
+              formControlName="password">
+            <button type="button" class="ghost-btn" (click)="togglePassword()">
+              {{ showPassword ? 'Hide' : 'Show' }}
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="errorMessage" class="alert alert-danger">
+          {{ errorMessage }}
+        </div>
+
+        <button
+          class="btn btn-primary w-100"
+          type="submit"
+          [disabled]="loginForm.invalid || isLoading">
+          {{ isLoading ? 'Signing in...' : 'Login' }}
+        </button>
+
+        <div class="auth-links">
+          <a routerLink="/register">Create account</a>
+          <a routerLink="/forgot-password">Forgot password?</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>

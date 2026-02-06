@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { JobSeekerService } from '../../../core/services/job-seeker.service';
+import { createJobSeekerServiceMock } from '../../../../test-helpers/mocks';
 
 import { JobListComponent } from './job-list.component';
 
@@ -8,7 +10,10 @@ describe('JobListComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [JobListComponent]
+      imports: [JobListComponent],
+      providers: [
+        { provide: JobSeekerService, useValue: createJobSeekerServiceMock() }
+      ]
     })
     .compileComponents();
 

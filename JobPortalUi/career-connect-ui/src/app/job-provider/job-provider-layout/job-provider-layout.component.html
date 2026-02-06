@@ -1,18 +1,29 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <div class="container-fluid">
-    <a class="navbar-brand">JobProvider</a>
+<div class="jp-shell">
+  <header class="jp-topbar">
+    <div class="brand">
+      <div class="logo">CC</div>
+      <div>
+        <div class="brand-title">Career Connect</div>
+        <div class="brand-sub">Employer Console</div>
+      </div>
+    </div>
 
-    <div class="collapse navbar-collapse show">
-      <ul class="navbar-nav me-auto">
-        <li class="nav-item">
-          <a routerLink="/job-provider" class="nav-link">Dashboard</a>
-        </li>
-        <li class="nav-item">
-          <a routerLink="/job-provider/jobs" class="nav-link">My Jobs</a>
-        </li>
-      </ul>
+    <nav class="jp-nav">
+      <a
+        routerLink="/job-provider"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }">
+        Dashboard
+      </a>
+      <a routerLink="/job-provider/jobs" routerLinkActive="active">
+        Jobs
+      </a>
+      <a routerLink="/job-provider/settings" routerLinkActive="active">
+        Settings
+      </a>
+    </nav>
 
-      <!-- ✅ PROFILE POPUP -->
+    <div class="jp-actions">
       <div class="dropdown">
         <button
           class="btn btn-outline-light btn-sm dropdown-toggle"
@@ -25,14 +36,14 @@
 
         <ul class="dropdown-menu dropdown-menu-end shadow">
           <li>
-            <a class="dropdown-item" routerLink="/profile">
+            <button class="dropdown-item" type="button" (click)="openProfile('view')">
               View Profile
-            </a>
+            </button>
           </li>
           <li>
-            <a class="dropdown-item" routerLink="/profile/edit">
+            <button class="dropdown-item" type="button" (click)="openProfile('edit')">
               Edit Profile
-            </a>
+            </button>
           </li>
 
           <li><hr class="dropdown-divider"></li>
@@ -44,11 +55,37 @@
           </li>
         </ul>
       </div>
+    </div>
+  </header>
 
+  <main class="jp-main">
+    <router-outlet></router-outlet>
+  </main>
+
+  <div class="profile-modal-backdrop" *ngIf="profileModalOpen" (click)="closeProfile()"></div>
+  <div class="profile-modal" *ngIf="profileModalOpen" (click)="$event.stopPropagation()">
+    <div class="profile-modal-header">
+      <div>
+        <h5>Profile</h5>
+        <p>Manage recruiter profile details in one place.</p>
+      </div>
+      <div class="profile-modal-actions">
+        <button class="chip-btn" [class.active]="profileMode === 'view'" (click)="switchToView()">View</button>
+        <button class="chip-btn" [class.active]="profileMode === 'edit'" (click)="switchToEdit()">Edit</button>
+        <button class="icon-btn" (click)="closeProfile()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+    </div>
+    <div class="profile-modal-body">
+      <app-view-profile
+        *ngIf="profileMode === 'view'"
+        [embedded]="true"
+        (editRequested)="switchToEdit()"></app-view-profile>
+      <app-edit-profile
+        *ngIf="profileMode === 'edit'"
+        [embedded]="true"
+        (cancelled)="switchToView()"></app-edit-profile>
     </div>
   </div>
-</nav>
-
-<div class="container mt-4">
-  <router-outlet></router-outlet>
 </div>

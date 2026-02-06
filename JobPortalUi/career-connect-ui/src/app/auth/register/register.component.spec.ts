@@ -1,4 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { AuthService } from '../../core/services/auth.service';
+import { Router } from '@angular/router';
+import { createAuthServiceMock, RouterStub } from '../../../test-helpers/mocks';
 
 import { RegisterComponent } from './register.component';
 
@@ -8,7 +11,11 @@ describe('RegisterComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [RegisterComponent]
+      imports: [RegisterComponent],
+      providers: [
+        { provide: AuthService, useValue: createAuthServiceMock() },
+        { provide: Router, useValue: RouterStub }
+      ]
     })
     .compileComponents();
 

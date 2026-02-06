@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Router, ActivatedRoute } from '@angular/router';
+import { RouterStub, ActivatedRouteStub } from '../../../test-helpers/mocks';
 
 import { JobProviderLayoutComponent } from './job-provider-layout.component';
 
@@ -8,7 +10,11 @@ describe('JobProviderLayoutComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [JobProviderLayoutComponent]
+      imports: [JobProviderLayoutComponent],
+      providers: [
+        { provide: Router, useValue: RouterStub },
+        { provide: ActivatedRoute, useValue: ActivatedRouteStub }
+      ]
     })
     .compileComponents();
 

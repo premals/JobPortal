@@ -1,40 +1,116 @@
-<div class="auth-page">
-  <div class="auth-card">
-
-    <h2 class="auth-title">Create Account</h2>
-
-    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
-
-      <div class="mb-3">
-        <label class="form-label">Full Name</label>
-        <input type="text" class="form-control" formControlName="fullName">
+<section class="auth-shell">
+  <div class="auth-left">
+    <div class="brand-block">
+      <div class="brand-mark">CC</div>
+      <div>
+        <div class="brand-title">Career Connect</div>
+        <div class="brand-sub">One account, two hiring journeys</div>
       </div>
+    </div>
 
-      <div class="mb-3">
-        <label class="form-label">Email</label>
-        <input type="email" class="form-control" formControlName="email">
+    <h1>Create your workspace.</h1>
+    <p>
+      Register once and choose your path. Job providers can post roles and
+      interview faster. Job seekers can build their profile and apply easily.
+    </p>
+
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h4>Unified access</h4>
+        <p>Single login for providers and seekers.</p>
       </div>
-
-      <div class="mb-3">
-        <label class="form-label">Password</label>
-        <input type="password" class="form-control" formControlName="password">
+      <div class="feature-card">
+        <h4>Profile ready</h4>
+        <p>Auto-fill details across applications.</p>
       </div>
-
-      <div class="mb-4">
-        <label class="form-label">Register As</label>
-        <select class="form-select" formControlName="userType">
-          <option value="">Select role</option>
-          <option value="JobSeeker">Job Seeker</option>
-          <option value="JobProvider">Job Provider</option>
-        </select>
+      <div class="feature-card">
+        <h4>Growth insights</h4>
+        <p>Keep hiring metrics in one place.</p>
       </div>
+    </div>
 
-      <button class="btn btn-primary w-100" type="submit"
-              [disabled]="registerForm.invalid">
-        Register
-      </button>
-
-    </form>
-
+    <div class="insight-strip">
+      <div>
+        <span>Simple</span>
+        <strong>JWT only</strong>
+      </div>
+      <div>
+        <span>Fast setup</span>
+        <strong>2 minutes</strong>
+      </div>
+      <div>
+        <span>Designed for</span>
+        <strong>Hiring teams</strong>
+      </div>
+    </div>
   </div>
-</div>
+
+  <div class="auth-right">
+    <div class="auth-card">
+      <div class="auth-header">
+        <h2>Create account</h2>
+        <p>Create your account and choose your role.</p>
+      </div>
+
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+        <div class="mb-3">
+          <label class="form-label">Full Name</label>
+          <input type="text" class="form-control" formControlName="fullName" placeholder="Your name">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-control" formControlName="email" placeholder="you@company.com">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          <div class="password-field">
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              class="form-control"
+              formControlName="password"
+              placeholder="Create a password">
+            <button type="button" class="ghost-btn" (click)="togglePassword()">
+              {{ showPassword ? 'Hide' : 'Show' }}
+            </button>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label">Choose your role</label>
+          <div class="role-grid">
+            <div
+              class="role-card"
+              [class.selected]="registerForm.get('userType')?.value === 'JobSeeker'"
+              (click)="selectRole('JobSeeker')">
+              <h5>Job Seeker</h5>
+              <p>Build a profile and apply for roles.</p>
+            </div>
+            <div
+              class="role-card"
+              [class.selected]="registerForm.get('userType')?.value === 'JobProvider'"
+              (click)="selectRole('JobProvider')">
+              <h5>Job Provider</h5>
+              <p>Post jobs and manage applicants.</p>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="errorMessage" class="alert alert-danger">
+          {{ errorMessage }}
+        </div>
+
+        <button class="btn btn-primary w-100" type="submit"
+                [disabled]="registerForm.invalid || isLoading">
+          {{ isLoading ? 'Creating...' : 'Register' }}
+        </button>
+
+        <div class="auth-links">
+          <a routerLink="/login">Already have an account?</a>
+          <a routerLink="/forgot-password">Need help?</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>

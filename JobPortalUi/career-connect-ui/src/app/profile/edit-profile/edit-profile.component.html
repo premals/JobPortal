@@ -1,47 +1,248 @@
-<div class="container mt-5">
-  <div class="card mx-auto" style="max-width: 600px;">
-    <div class="card-body">
-
-      <h3 class="card-title mb-4">Edit Profile</h3>
-
-      <form *ngIf="!isLoading"
-            [formGroup]="profileForm"
-            (ngSubmit)="onSubmit()">
-
-        <div class="mb-3">
-          <label class="form-label">Full Name</label>
-          <input type="text"
-                 class="form-control"
-                 formControlName="fullName">
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label">Email</label>
-          <input type="email"
-                 class="form-control"
-                 formControlName="email">
-        </div>
-
-        <div class="mb-4">
-          <label class="form-label">User Type</label>
-          <input type="text"
-                 class="form-control"
-                 formControlName="userType">
-        </div>
-
-        <div class="d-flex gap-2">
-          <button class="btn btn-success w-50" type="submit">
-            Save
-          </button>
-          <button class="btn btn-secondary w-50"
-                  type="button"
-                  (click)="cancel()">
-            Cancel
-          </button>
-        </div>
-
-      </form>
-
+<div class="edit-page">
+  <div class="edit-hero">
+    <div>
+      <span class="eyebrow">Edit Profile</span>
+      <h2>Keep Your Details Fresh</h2>
+      <p>Update your profile and make a stronger impression.</p>
     </div>
+    <div class="hero-actions">
+      <button class="btn btn-outline-light" (click)="cancel()">
+        {{ embedded ? 'Close' : 'Back' }}
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary"></div>
+  </div>
+
+  <div *ngIf="!isLoading">
+    <div class="alert alert-success" *ngIf="successMessage">{{ successMessage }}</div>
+    <div class="alert alert-danger" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+    <section class="edit-card" *ngIf="userType === 'JobProvider'">
+      <h4>Recruiter Profile</h4>
+      <p class="muted">Manage the people and brand profile your candidates see.</p>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input class="form-control" [(ngModel)]="profile.fullName" />
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input class="form-control" [value]="profile.email" disabled />
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Company Name</label>
+          <input class="form-control" [(ngModel)]="jobProviderProfile.companyName" />
+        </div>
+        <div class="form-group">
+          <label>Brand Name</label>
+          <input class="form-control" [(ngModel)]="jobProviderProfile.brandName" />
+        </div>
+        <div class="form-group">
+          <label>Industry</label>
+          <input class="form-control" [(ngModel)]="jobProviderProfile.industry" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Company Size</label>
+          <input class="form-control" [(ngModel)]="jobProviderProfile.companySize" />
+        </div>
+        <div class="form-group">
+          <label>Website</label>
+          <input class="form-control" [(ngModel)]="jobProviderProfile.website" />
+        </div>
+        <div class="form-group">
+          <label>Phone</label>
+          <input class="form-control" [(ngModel)]="jobProviderProfile.phone" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Location</label>
+          <input class="form-control" [(ngModel)]="jobProviderProfile.location" />
+        </div>
+        <div class="form-group">
+          <label>Logo URL</label>
+          <input class="form-control" [(ngModel)]="jobProviderProfile.logoUrl" />
+        </div>
+        <div class="form-group">
+          <label>LinkedIn</label>
+          <input class="form-control" [(ngModel)]="jobProviderProfile.linkedInUrl" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Twitter</label>
+          <input class="form-control" [(ngModel)]="jobProviderProfile.twitterUrl" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Company Story</label>
+        <textarea class="form-control" rows="4" [(ngModel)]="jobProviderProfile.about"></textarea>
+      </div>
+
+      <button class="btn btn-primary" (click)="saveJobProvider()" [disabled]="isSaving">
+        {{ isSaving ? 'Saving...' : 'Save Changes' }}
+      </button>
+    </section>
+
+    <section class="edit-card" *ngIf="userType === 'JobSeeker'">
+      <h4>Job Seeker Profile</h4>
+      <p class="muted">Build a profile that reads well and is ATS-friendly.</p>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input class="form-control" [(ngModel)]="jobSeekerProfile.fullName" />
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input class="form-control" [(ngModel)]="jobSeekerProfile.email" />
+        </div>
+        <div class="form-group">
+          <label>Phone</label>
+          <input class="form-control" [(ngModel)]="jobSeekerProfile.phone" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Headline</label>
+          <input class="form-control" [(ngModel)]="jobSeekerProfile.headline" />
+        </div>
+        <div class="form-group">
+          <label>Location</label>
+          <input class="form-control" [(ngModel)]="jobSeekerProfile.location" />
+        </div>
+        <div class="form-group">
+          <label>Experience (Years)</label>
+          <input type="number" class="form-control" [(ngModel)]="jobSeekerProfile.experienceYears" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Skills (comma separated)</label>
+        <input class="form-control" [(ngModel)]="skillInput" />
+      </div>
+
+      <div class="form-group">
+        <label>Summary</label>
+        <textarea class="form-control" rows="4" [(ngModel)]="jobSeekerProfile.summary"></textarea>
+        <button class="btn btn-outline-primary btn-sm mt-2" (click)="generateAiSummary()">
+          Generate with AI
+        </button>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <h5>Work History</h5>
+          <button class="btn btn-outline-secondary btn-sm" (click)="addWork()">Add</button>
+        </div>
+        <div class="repeat-card" *ngFor="let work of jobSeekerProfile.workHistory; let i = index">
+          <div class="form-row">
+            <input class="form-control" placeholder="Company" [(ngModel)]="work.company" />
+            <input class="form-control" placeholder="Role" [(ngModel)]="work.role" />
+          </div>
+          <div class="form-row">
+            <input class="form-control" placeholder="Start (e.g. 2021)" [(ngModel)]="work.startDate" />
+            <input class="form-control" placeholder="End (e.g. 2024)" [(ngModel)]="work.endDate" />
+          </div>
+          <textarea class="form-control" rows="2" placeholder="Key impact" [(ngModel)]="work.description"></textarea>
+          <button class="btn btn-link text-danger" (click)="removeWork(i)">Remove</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <h5>Education</h5>
+          <button class="btn btn-outline-secondary btn-sm" (click)="addEducation()">Add</button>
+        </div>
+        <div class="repeat-card" *ngFor="let edu of jobSeekerProfile.educationHistory; let i = index">
+          <div class="form-row">
+            <input class="form-control" placeholder="School" [(ngModel)]="edu.school" />
+            <input class="form-control" placeholder="Degree" [(ngModel)]="edu.degree" />
+          </div>
+          <div class="form-row">
+            <input class="form-control" placeholder="Field" [(ngModel)]="edu.field" />
+            <input class="form-control" placeholder="Year" [(ngModel)]="edu.graduationYear" />
+          </div>
+          <button class="btn btn-link text-danger" (click)="removeEducation(i)">Remove</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <h5>Projects</h5>
+          <button class="btn btn-outline-secondary btn-sm" (click)="addProject()">Add</button>
+        </div>
+        <div class="repeat-card" *ngFor="let project of jobSeekerProfile.projects; let i = index">
+          <input class="form-control" placeholder="Project Name" [(ngModel)]="project.name" />
+          <input class="form-control" placeholder="Role" [(ngModel)]="project.role" />
+          <textarea class="form-control" rows="2" placeholder="Description" [(ngModel)]="project.description"></textarea>
+          <input class="form-control" placeholder="Link" [(ngModel)]="project.link" />
+          <button class="btn btn-link text-danger" (click)="removeProject(i)">Remove</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <h5>Certifications</h5>
+          <button class="btn btn-outline-secondary btn-sm" (click)="addCertification()">Add</button>
+        </div>
+        <div class="repeat-card" *ngFor="let cert of jobSeekerProfile.certifications; let i = index">
+          <input class="form-control" placeholder="Certification" [(ngModel)]="cert.name" />
+          <input class="form-control" placeholder="Issuer" [(ngModel)]="cert.issuer" />
+          <input class="form-control" placeholder="Year" [(ngModel)]="cert.year" />
+          <button class="btn btn-link text-danger" (click)="removeCertification(i)">Remove</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <h5>Languages</h5>
+          <button class="btn btn-outline-secondary btn-sm" (click)="addLanguage()">Add</button>
+        </div>
+        <div class="repeat-card" *ngFor="let lang of jobSeekerProfile.languages; let i = index">
+          <input class="form-control" placeholder="Language" [(ngModel)]="lang.name" />
+          <input class="form-control" placeholder="Proficiency" [(ngModel)]="lang.proficiency" />
+          <button class="btn btn-link text-danger" (click)="removeLanguage(i)">Remove</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <h5>Resume Settings</h5>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Template</label>
+            <select class="form-select" [(ngModel)]="jobSeekerProfile.resumeSettings.template">
+              <option value="Clean">Clean</option>
+              <option value="Classic">Classic</option>
+              <option value="Modern">Modern</option>
+            </select>
+          </div>
+          <div class="form-group toggle">
+            <label>ATS Friendly</label>
+            <input type="checkbox" [(ngModel)]="jobSeekerProfile.resumeSettings.atsFriendly" />
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" (click)="saveJobSeeker()" [disabled]="isSaving">
+        {{ isSaving ? 'Saving...' : 'Save Profile' }}
+      </button>
+    </section>
   </div>
 </div>

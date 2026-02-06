@@ -1,0 +1,161 @@
+<section class="settings-hero">
+  <div>
+    <span class="eyebrow">Job Provider</span>
+    <h2 class="title">Recruiter Settings</h2>
+    <p class="subtitle">
+      Configure interview flow, AI assistance, and communication templates.
+    </p>
+  </div>
+  <div class="hero-actions">
+    <button class="btn btn-outline-light" (click)="loadSettings()" [disabled]="isLoading">
+      Refresh
+    </button>
+  </div>
+</section>
+
+<div *ngIf="isLoading" class="text-center py-5">
+  <div class="spinner-border text-primary"></div>
+</div>
+
+<div *ngIf="!isLoading" class="settings-grid">
+
+  <div class="settings-card">
+    <div class="card-header">
+      <div>
+        <h5>Interview Defaults</h5>
+        <p>Control the candidate invitation flow and question count.</p>
+      </div>
+    </div>
+
+    <div class="card-body" *ngIf="settings">
+      <label class="form-label">Difficulty Levels</label>
+      <div class="chip-row">
+        <span class="chip" *ngFor="let level of settings.interview.difficultyLevels; let i = index">
+          {{ level }}
+          <button type="button" class="chip-remove" (click)="removeDifficulty(i)">x</button>
+        </span>
+      </div>
+
+      <div class="chip-input">
+        <input
+          type="text"
+          class="form-control"
+          placeholder="Add difficulty (e.g. Beginner)"
+          [(ngModel)]="newDifficulty">
+        <button class="btn btn-outline-primary" type="button" (click)="addDifficulty()">Add</button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Default Difficulty</label>
+        <select class="form-select" [(ngModel)]="settings.interview.defaultDifficulty">
+          <option *ngFor="let option of difficultyOptions" [value]="option">
+            {{ option }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Questions Per Interview</label>
+          <input type="number" min="1" class="form-control" [(ngModel)]="settings.interview.questionsCount">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Slot Duration (minutes)</label>
+          <input type="number" min="15" class="form-control" [(ngModel)]="settings.interview.slotDurationMinutes">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Slots To Propose</label>
+          <input type="number" min="1" class="form-control" [(ngModel)]="settings.interview.slotCount">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="settings-card">
+    <div class="card-header">
+      <div>
+        <h5>AI And Automation</h5>
+        <p>Enable AI suggestions, interview generation, and future avatar hooks.</p>
+      </div>
+    </div>
+
+    <div class="card-body" *ngIf="settings">
+      <div class="toggle-row">
+        <label class="form-check-label">Enable Shortlist Suggestions</label>
+        <input class="form-check-input" type="checkbox" [(ngModel)]="settings.ai.enableShortlistSuggestions">
+      </div>
+
+      <div class="toggle-row">
+        <label class="form-check-label">Enable AI Interview Questions And Scoring</label>
+        <input class="form-check-input" type="checkbox" [(ngModel)]="settings.ai.enableInterviewAi">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Azure OpenAI Endpoint</label>
+        <input type="text" class="form-control" [(ngModel)]="settings.ai.endpoint">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Deployment Name</label>
+        <input type="text" class="form-control" [(ngModel)]="settings.ai.deployment">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">API Version</label>
+        <input type="text" class="form-control" [(ngModel)]="settings.ai.apiVersion">
+      </div>
+
+      <div class="toggle-row">
+        <label class="form-check-label">Enable Video Avatar Hooks</label>
+        <input class="form-check-input" type="checkbox" [(ngModel)]="settings.ai.enableAvatar">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Avatar Provider (optional)</label>
+        <input type="text" class="form-control" [(ngModel)]="settings.ai.avatarProvider">
+      </div>
+
+      <div class="help-text">
+        API keys remain server side and should be configured in secure environment settings.
+      </div>
+    </div>
+  </div>
+
+  <div class="settings-card full">
+    <div class="card-header">
+      <div>
+        <h5>Interview Invite Email</h5>
+        <p>These templates are used for email and in-app messaging.</p>
+      </div>
+    </div>
+
+    <div class="card-body" *ngIf="settings">
+      <div class="form-group">
+        <label class="form-label">Subject</label>
+        <input type="text" class="form-control" [(ngModel)]="settings.email.inviteSubject">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Body</label>
+        <textarea
+          class="form-control"
+          rows="4"
+          [(ngModel)]="settings.email.inviteBody"></textarea>
+      </div>
+
+      <div class="help-text">
+        You can use &#123;JobTitle&#125; and &#123;CandidateName&#125; placeholders.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="settings-footer" *ngIf="!isLoading">
+  <div class="status">
+    <span class="error" *ngIf="errorMessage">{{ errorMessage }}</span>
+    <span class="success" *ngIf="successMessage">{{ successMessage }}</span>
+  </div>
+  <button class="btn btn-primary" (click)="save()" [disabled]="isSaving || !settings">
+    Save Settings
+  </button>
+</div>

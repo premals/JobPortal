@@ -1,3 +1,14 @@
+export interface AuthProfile {
+  userId: string;
+  fullName: string;
+  email: string;
+  userType: string;
+  forcePasswordReset: boolean;
+}
+
 export interface AuthResponse {
-  token: string;
+  accessToken: string;
+  refreshToken: string;
+  accessTokenExpiresAt: string;
+  profile: AuthProfile;
 }

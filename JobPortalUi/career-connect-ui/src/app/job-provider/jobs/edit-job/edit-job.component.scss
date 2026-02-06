@@ -1,0 +1,67 @@
+/* ================= MODAL WRAPPER ================= */
+/* ================= MODAL ================= */
+.create-job-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  width: 900px;
+  max-width: 95vw;
+  height: 90vh;
+
+  background: #fff;
+  border-radius: 10px;
+
+  display: flex;
+  flex-direction: column;
+
+  z-index: 1050;       /* 🔥 ABOVE BACKDROP */
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+
+  overflow: hidden;
+}
+
+
+/* ================= CLOSE BUTTON ================= */
+.close-btn {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+
+  background: transparent;
+  border: none;
+  font-size: 1.8rem;
+  cursor: pointer;
+  z-index: 1000;
+}
+
+/* ================= HEADER ================= */
+.modal-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid #eee;
+  flex-shrink: 0;
+}
+
+/* ================= BODY (SCROLL ZONE) ================= */
+.modal-body {
+  flex: 1;                   /* 🔥 MOST IMPORTANT LINE */
+  overflow-y: auto;          /* 🔥 ENABLE SCROLL */
+  padding: 1.5rem;
+
+  min-height: 0;             /* 🔥 FIX FLEX SCROLL BUG */
+}
+
+/* ================= FOOTER ================= */
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #eee;
+  flex-shrink: 0;
+}
+
+.modal-backdrop-custom {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 1040;
+}

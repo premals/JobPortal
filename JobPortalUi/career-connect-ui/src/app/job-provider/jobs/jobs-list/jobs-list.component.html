@@ -3,55 +3,136 @@
   *ngIf="showCreateJob"
   (closed)="closeCreateJob()">
 </app-create-job>
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <h4 class="mb-0">My Jobs</h4>
 
-  <button
-    class="btn btn-primary d-flex align-items-center gap-2"
-    (click)="openCreateJob()">
-    <i class="bi bi-plus-circle"></i>
-    Post New Job
-  </button>
+<app-edit-job
+  *ngIf="showEditJob"
+  [jobId]="selectedJobId"
+  [job]="selectedJob"
+  (closed)="closeEditJob()">
+</app-edit-job>
+
+<section class="jobs-hero">
+  <div class="hero-content">
+    <span class="eyebrow">Job Provider</span>
+    <h2 class="title">My Jobs</h2>
+    <p class="subtitle">
+      Manage postings, track applicants, and keep roles fresh.
+    </p>
+  </div>
+
+  <div class="hero-actions">
+    <button
+      class="btn btn-primary btn-lg d-flex align-items-center gap-2"
+      (click)="openCreateJob()">
+      <i class="bi bi-plus-circle"></i>
+      Post New Job
+    </button>
+  </div>
+</section>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <span>Total Jobs</span>
+    <strong>{{ totalJobs }}</strong>
+  </div>
+  <div class="stat-card accent">
+    <span>Active</span>
+    <strong>{{ activeJobs }}</strong>
+  </div>
+  <div class="stat-card muted">
+    <span>Closed</span>
+    <strong>{{ closedJobs }}</strong>
+  </div>
 </div>
 
+<div class="jobs-toolbar">
+  <div class="search-box">
+    <i class="bi bi-search"></i>
+    <input
+      type="text"
+      class="form-control"
+      placeholder="Search by title or location"
+      [(ngModel)]="searchTerm"
+      (input)="applyFilters()">
+  </div>
 
+  <div class="filter-box">
+    <select
+      class="form-select"
+      [(ngModel)]="statusFilter"
+      (change)="applyFilters()">
+      <option value="all">All statuses</option>
+      <option value="Active">Active</option>
+      <option value="Closed">Closed</option>
+      <option value="Draft">Draft</option>
+    </select>
+  </div>
+</div>
 
-  
-<div *ngIf="jobs.length === 0" class="alert alert-info">
-    You haven’t posted any jobs yet.
+<div *ngIf="filteredJobs.length === 0" class="empty-state">
+  <i class="bi bi-briefcase"></i>
+  <h5 *ngIf="jobs.length === 0; else noMatch">No jobs yet</h5>
+  <p *ngIf="jobs.length === 0; else noMatchText">
+    Create your first job to start receiving applications.
+  </p>
+  <ng-template #noMatch>
+    <h5>No jobs match your filters</h5>
+  </ng-template>
+  <ng-template #noMatchText>
+    <p>Try adjusting your search or status filter.</p>
+  </ng-template>
 </div>
 
 <div class="row">
 
-    <div class="col-lg-6 col-xl-4 mb-4" *ngFor="let job of jobs">
+  <div class="col-lg-6 col-xl-4 mb-4" *ngFor="let job of filteredJobs">
 
-        <div class="job-card">
+    <div class="job-card">
 
-            <div class="job-header">
-                <h5 class="job-title">{{ job.title }}</h5>
-                <span class="badge bg-secondary">
-                    {{ job.employmentType }}
-                </span>
-            </div>
-
-            <div class="job-body">
-                <p class="job-location">
-                    📍 {{ job.city }}, {{ job.country }}
-                </p>
-            </div>
-
-            <div class="job-actions">
-                <button class="btn btn-outline-primary btn-sm" (click)="editJob(job.id)">
-                    Edit
-                </button>
-
-                <button class="btn btn-outline-success btn-sm" (click)="viewApplications(job.id)">
-                    View Applications
-                </button>
-            </div>
-
+      <div class="job-header">
+        <div>
+          <h5 class="job-title">{{ job.title }}</h5>
+          <div class="job-meta">
+            <span class="chip">{{ job.employmentType }}</span>
+            <span class="chip">{{ job.workMode }}</span>
+          </div>
         </div>
+        <span class="status-pill" [ngClass]="job.status?.toLowerCase()">
+          {{ job.status }}
+        </span>
+      </div>
+
+      <div class="job-body">
+        <div class="meta-row">
+          <i class="bi bi-geo-alt"></i>
+          <span>{{ job.city }}, {{ job.country }}</span>
+        </div>
+        <div class="meta-row">
+          <i class="bi bi-briefcase"></i>
+          <span>{{ job.minExperience }}-{{ job.maxExperience }} yrs</span>
+        </div>
+        <div class="meta-row">
+          <i class="bi bi-cash-coin"></i>
+          <span>{{ job.minSalary }} - {{ job.maxSalary }} {{ job.currency }} / {{ job.salaryFrequency }}</span>
+        </div>
+      </div>
+
+      <div class="job-actions">
+        <button
+          class="btn btn-outline-primary btn-sm"
+          (click)="editJob(job)">
+          Edit
+        </button>
+
+        <button
+          class="btn btn-outline-success btn-sm"
+          (click)="viewApplications(job)">
+          Applications
+        </button>
+      </div>
 
     </div>
+
+  </div>
 
 </div>

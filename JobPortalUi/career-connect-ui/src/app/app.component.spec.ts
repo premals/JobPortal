@@ -14,16 +14,10 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have the 'career-connect-ui' title`, () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app.title).toEqual('career-connect-ui');
-  });
-
-  it('should render title', () => {
+  it('should render toast', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, career-connect-ui');
+    expect(compiled.querySelector('app-toast')).toBeTruthy();
   });
 });

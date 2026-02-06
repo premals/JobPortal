@@ -71,7 +71,7 @@ export const routes: Routes = [
                 path: 'jobs',
                 loadComponent: () =>
                     import('./job-provider/jobs/jobs-list/jobs-list.component')
-                        .then(c => c.JobListComponent)
+                        .then(c => c.JobProviderJobsListComponent)
             },
             {
                 path: 'jobs/create',
@@ -80,10 +80,16 @@ export const routes: Routes = [
                         .then(c => c.CreateJobComponent)
             },
             {
-            path: 'jobs/:jobId/applications',
-            loadComponent: () =>
-                import('./job-provider/applications/job-applications/job-applications.component')
-                    .then(c => c.JobApplicationsComponent)
+                path: 'jobs/:jobId/applications',
+                loadComponent: () =>
+                    import('./job-provider/applications/job-applications/job-applications.component')
+                        .then(c => c.JobApplicationsComponent)
+            },
+            {
+                path: 'settings',
+                loadComponent: () =>
+                    import('./job-provider/settings/job-provider-settings/job-provider-settings.component')
+                        .then(c => c.JobProviderSettingsComponent)
             }
         ]
     },

@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Router, ActivatedRoute } from '@angular/router';
+import { RouterStub, ActivatedRouteStub } from '../../../test-helpers/mocks';
 
 import { LayoutComponent } from './layout.component';
 
@@ -8,7 +10,11 @@ describe('LayoutComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [LayoutComponent]
+      imports: [LayoutComponent],
+      providers: [
+        { provide: Router, useValue: RouterStub },
+        { provide: ActivatedRoute, useValue: ActivatedRouteStub }
+      ]
     })
     .compileComponents();
 

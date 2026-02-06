@@ -1,0 +1,153 @@
+:host {
+  display: block;
+}
+
+.settings-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 26px 28px;
+  border-radius: 22px;
+  color: #f8fafc;
+  background:
+    radial-gradient(140% 140% at 0% 0%, rgba(255, 255, 255, 0.2), transparent 60%),
+    linear-gradient(120deg, #0f172a 0%, #1f2937 45%, #0b1324 100%);
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.25);
+  margin-bottom: 24px;
+
+  .eyebrow {
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(248, 250, 252, 0.7);
+  }
+
+  .title {
+    margin: 6px 0 4px;
+    font-weight: 700;
+  }
+
+  .subtitle {
+    margin: 0;
+    color: rgba(248, 250, 252, 0.75);
+  }
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.settings-card {
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+
+  &.full {
+    grid-column: 1 / -1;
+  }
+
+  .card-header {
+    padding: 18px 20px 10px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+
+    h5 {
+      margin: 0 0 6px;
+      font-weight: 600;
+    }
+
+    p {
+      margin: 0;
+      color: #64748b;
+      font-size: 0.9rem;
+    }
+  }
+
+  .card-body {
+    padding: 18px 20px 22px;
+  }
+}
+
+.form-group {
+  margin-bottom: 14px;
+}
+
+.form-row {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.chip-remove {
+  border: none;
+  background: transparent;
+  font-weight: 700;
+  color: #1d4ed8;
+  cursor: pointer;
+}
+
+.chip-input {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8fafc;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  margin-bottom: 12px;
+}
+
+.help-text {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.settings-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding: 12px 4px;
+
+  .status {
+    display: flex;
+    gap: 12px;
+  }
+
+  .error {
+    color: #b91c1c;
+    font-weight: 600;
+  }
+
+  .success {
+    color: #16a34a;
+    font-weight: 600;
+  }
+}

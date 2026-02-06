@@ -1,4 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { AuthService } from '../../core/services/auth.service';
+import { ActivatedRoute } from '@angular/router';
+import { createAuthServiceMock, ActivatedRouteStub } from '../../../test-helpers/mocks';
 
 import { ForgotPasswordComponent } from './forgot-password.component';
 
@@ -8,7 +11,11 @@ describe('ForgotPasswordComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ForgotPasswordComponent]
+      imports: [ForgotPasswordComponent],
+      providers: [
+        { provide: AuthService, useValue: createAuthServiceMock() },
+        { provide: ActivatedRoute, useValue: ActivatedRouteStub }
+      ]
     })
     .compileComponents();
 

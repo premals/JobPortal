@@ -18,13 +18,15 @@ import { AuthService } from '../../core/services/auth.service';
     ReactiveFormsModule,
     RouterModule
   ],
-  templateUrl: './register.component.html'
+  templateUrl: './register.component.html',
+  styleUrls: ['./register.component.scss']
 })
 export class RegisterComponent {
 
   registerForm!: FormGroup;
   isLoading = false;
   errorMessage = '';
+  showPassword = false;
 
   constructor(
     private fb: FormBuilder,
@@ -62,5 +64,13 @@ export class RegisterComponent {
           err?.error?.message || 'Registration failed';
       }
     });
+  }
+
+  togglePassword(): void {
+    this.showPassword = !this.showPassword;
+  }
+
+  selectRole(role: string): void {
+    this.registerForm.patchValue({ userType: role });
   }
 }
