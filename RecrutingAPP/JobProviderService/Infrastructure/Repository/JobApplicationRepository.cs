@@ -34,6 +34,40 @@ namespace JobProviderService.Infrastructure.Repository
                 .ToListAsync();
         }
 
+        public async Task<List<JobApplication>> GetByProviderAsync(string providerId, int limit)
+        {
+            if (string.IsNullOrWhiteSpace(providerId))
+                return new List<JobApplication>();
+
+            var safeLimit = limit <= 0 ? 10 : limit;
+
+            return await _collection
+                .Find(x => x.JobProviderId == providerId)
+                .SortByDescending(x => x.AppliedAt)
+                .Limit(safeLimit)
+                .ToListAsync();
+        }
+
+        public async Task<long> CountByProviderAsync(string providerId)
+        {
+            if (string.IsNullOrWhiteSpace(providerId))
+                return 0;
+
+            return await _collection
+                .CountDocumentsAsync(x => x.JobProviderId == providerId);
+        }
+
+        public async Task<long> CountByProviderAndStatusAsync(string providerId, string status)
+        {
+            if (string.IsNullOrWhiteSpace(providerId) || string.IsNullOrWhiteSpace(status))
+                return 0;
+
+            return await _collection
+                .CountDocumentsAsync(x =>
+                    x.JobProviderId == providerId &&
+                    x.Status == status);
+        }
+
         public async Task UpdateAsync(
         string jobId,
         string jobSeekerId,

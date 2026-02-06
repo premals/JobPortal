@@ -21,12 +21,19 @@ namespace IdendityService.Controllers
             var userId = User.FindFirst("userId")?.Value;
             if (userId == null) return Unauthorized();
             var user = await _userManager.FindByIdAsync(userId);
-            return Ok(new { user.FullName, user.Email });
+            if (user == null) return Unauthorized();
+            var roles = await _userManager.GetRolesAsync(user);
+            return Ok(new
+            {
+                user.FullName,
+                user.Email,
+                UserType = roles.FirstOrDefault() ?? "JobSeeker"
+            });
         }
 
         [Authorize]
         [HttpPut("update")]
-        public async Task<IActionResult> Update([FromBody] RegisterRequest model)
+        public async Task<IActionResult> Update([FromBody] UpdateProfileRequest model)
         {
             var userId = User.FindFirst("userId")?.Value;
             var user = await _userManager.FindByIdAsync(userId);

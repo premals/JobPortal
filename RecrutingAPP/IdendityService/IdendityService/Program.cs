@@ -32,6 +32,9 @@ var key = Encoding.UTF8.GetBytes(configuration["Jwt:Key"]);
 var client = new MongoClient(builder.Configuration["MongoSettings:ConnectionString"]);
 var database = client.GetDatabase(builder.Configuration["MongoSettings:DatabaseName"]);
 await SetupMongoIndexes.ConfigureMongoIndexes(database);
+
+services.AddSingleton<IMongoClient>(client);
+services.AddSingleton<IMongoDatabase>(database);
 services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

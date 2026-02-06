@@ -8,7 +8,6 @@ namespace JobProviderService.Application.UseCases
     {
         private readonly IJobRepository _repository;
         private readonly IEventBus _eventBus;
-
         public UpdateJobPartialUseCase(IJobRepository repository, IEventBus eventBus)
         {
             _repository = repository;

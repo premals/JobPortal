@@ -1,4 +1,4 @@
-﻿using JobSeekerService.Application.EventHandler;
+using JobSeekerService.Application.EventHandler;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;

@@ -1,9 +1,8 @@
-﻿using IdendityService.DTOs;
+using IdendityService.DTOs;
 using IdendityService.Interfaces;
 using IdendityService.Interfaces.Auth;
 using IdendityService.Models;
 using Microsoft.AspNetCore.Identity;
-using static IdendityService.DTOs.AuthResponseDto;
 
 namespace IdendityService.Services.UseCases
 {
@@ -12,7 +11,6 @@ namespace IdendityService.Services.UseCases
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IJwtService _jwtService;
         private readonly IRefreshTokenService _refreshTokenService;
-
         public LoginUseCase(
             UserManager<ApplicationUser> userManager,
             IJwtService jwtService,
@@ -30,6 +28,9 @@ namespace IdendityService.Services.UseCases
             if (user == null || !await _userManager.CheckPasswordAsync(user, req.Password))
                 throw new UnauthorizedAccessException("Invalid credentials");
 
+            if (!user.IsActive)
+                throw new UnauthorizedAccessException("Account is disabled. Contact admin.");
+
             var roles = await _userManager.GetRolesAsync(user);
 
             var accessToken = _jwtService.GenerateAccessToken(
@@ -39,14 +40,14 @@ namespace IdendityService.Services.UseCases
             );
 
             var refreshToken = _jwtService.GenerateRefreshToken(ip);
-
             await _refreshTokenService.AddRefreshTokenAsync(user, refreshToken);
 
             var profile = new AuthResponseDto.UserProfile(
                 user.Id.ToString(),
-                user.FullName,              // custom Identity field
+                user.FullName,
                 user.Email!,
-                roles.FirstOrDefault() ?? "JobSeeker"
+                roles.FirstOrDefault() ?? "JobSeeker",
+                user.ForcePasswordReset
             );
 
             return new AuthResponseDto.AuthResponse(

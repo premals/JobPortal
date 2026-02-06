@@ -9,7 +9,8 @@ namespace JobSeekerService.Infrastructure.Mongo
 
         public MongoDbContext(IMongoClient client, IConfiguration config)
         {
-            _database = client.GetDatabase(config["Mongo:DatabaseName"]);
+            var baseName = config["Mongo:DatabaseName"];
+            _database = client.GetDatabase(baseName);
         }
 
         public IMongoCollection<JobSnapshot> Jobs =>
@@ -20,5 +21,10 @@ namespace JobSeekerService.Infrastructure.Mongo
 
         public IMongoCollection<JobApplication> JobApplications =>
         _database.GetCollection<JobApplication>("JobApplications");
+
+        public IMongoCollection<Notification> Notifications =>
+        _database.GetCollection<Notification>("Notifications");
+
+        
     }
 }

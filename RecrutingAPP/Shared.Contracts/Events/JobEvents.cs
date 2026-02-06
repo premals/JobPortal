@@ -243,6 +243,50 @@ namespace Shared.Contracts.Events
             public string JobSeekerId { get; init; } = null!;
         }
 
+        public record JobApplicationStatusUpdatedEvent : BaseEvent
+        {
+            // ============================
+            // Event Metadata
+            // ============================
+            public string EventId { get; init; } = Guid.NewGuid().ToString();
+            public DateTime OccurredAt { get; init; } = DateTime.UtcNow;
+            public string EventType { get; init; } = nameof(JobApplicationStatusUpdatedEvent);
+            public int Version { get; init; } = 1;
+
+            // ============================
+            // Identity
+            // ============================
+            public string JobId { get; init; } = null!;
+            public string JobProviderId { get; init; } = null!;
+            public string JobSeekerId { get; init; } = null!;
+
+            // ============================
+            // Status
+            // ============================
+            public string Status { get; init; } = null!;
+            public DateTime UpdatedAt { get; init; } = DateTime.UtcNow;
+        }
+
+        public record InterviewInviteCreatedEvent : BaseEvent
+        {
+            public string EventId { get; init; } = Guid.NewGuid().ToString();
+            public DateTime OccurredAt { get; init; } = DateTime.UtcNow;
+            public string EventType { get; init; } = nameof(InterviewInviteCreatedEvent);
+            public int Version { get; init; } = 1;
+
+            public string InviteId { get; init; } = null!;
+            public string JobId { get; init; } = null!;
+            public string JobTitle { get; init; } = null!;
+            public string JobProviderId { get; init; } = null!;
+            public string JobSeekerId { get; init; } = null!;
+
+            public string CandidateName { get; init; } = null!;
+            public string CandidateEmail { get; init; } = null!;
+
+            public string Difficulty { get; init; } = "Medium";
+            public List<DateTime> ProposedSlots { get; init; } = new();
+        }
+
         public record JobSeekerRegisteredEvent
         {
             // ============================

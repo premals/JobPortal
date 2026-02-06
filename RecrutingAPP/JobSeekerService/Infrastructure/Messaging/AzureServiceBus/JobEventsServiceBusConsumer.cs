@@ -1,4 +1,5 @@
-﻿using Azure.Messaging.ServiceBus;
+using Azure.Messaging.ServiceBus;
+using JobSeekerService.Application.EventHandler;
 using JobSeekerService.Application.Interfaces;
 using System.Text.Json;
 using static Shared.Contracts.Events.JobEvents;
@@ -62,6 +63,24 @@ namespace JobSeekerService.Infrastructure.Messaging.AzureServiceBus
                 {
                     var evt = JsonSerializer.Deserialize<JobClosedEvent>(json)!;
                     await repo.MarkClosedAsync(evt.JobId);
+                }
+                else if (json.Contains(nameof(JobApplicationStatusUpdatedEvent)))
+                {
+                    var evt = JsonSerializer.Deserialize<JobApplicationStatusUpdatedEvent>(json)!;
+
+                    var handler = scope.ServiceProvider
+                        .GetRequiredService<JobApplicationStatusUpdatedEventHandler>();
+
+                    await handler.HandleAsync(evt);
+                }
+                else if (json.Contains(nameof(InterviewInviteCreatedEvent)))
+                {
+                    var evt = JsonSerializer.Deserialize<InterviewInviteCreatedEvent>(json)!;
+
+                    var handler = scope.ServiceProvider
+                        .GetRequiredService<InterviewInviteCreatedEventHandler>();
+
+                    await handler.HandleAsync(evt);
                 }
 
                 await args.CompleteMessageAsync(args.Message);

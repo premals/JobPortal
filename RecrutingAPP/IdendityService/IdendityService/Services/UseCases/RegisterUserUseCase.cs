@@ -15,7 +15,6 @@ namespace IdendityService.Services.UseCases
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IEmailService _emailService;
         private readonly IEventBus _eventBus;
-
         public RegisterUserUseCase(
             UserManager<ApplicationUser> userManager,
             IEmailService emailService,
@@ -53,12 +52,15 @@ namespace IdendityService.Services.UseCases
 
             await _userManager.AddToRoleAsync(user, request.UserType);
 
-            await _eventBus.PublishAsync(new JobSeekerRegisteredEvent
+            if (string.Equals(request.UserType, "JobSeeker", StringComparison.OrdinalIgnoreCase))
             {
-                UserId = user.Id.ToString(),
-                FullName = user.FullName,
-                Email = user.Email!
-            });
+                await _eventBus.PublishAsync(new JobSeekerRegisteredEvent
+                {
+                    UserId = user.Id.ToString(),
+                    FullName = user.FullName,
+                    Email = user.Email!
+                });
+            }
 
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var verifyUrl =

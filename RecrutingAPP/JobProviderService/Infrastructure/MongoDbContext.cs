@@ -9,7 +9,8 @@ namespace JobProviderService.Infrastructure
 
         public MongoDbContext(IMongoClient client, IConfiguration config)
         {
-            _database = client.GetDatabase(config["Mongo:Database"]);
+            var baseName = config["Mongo:Database"];
+            _database = client.GetDatabase(baseName);
         }
 
         public IMongoCollection<Job> Jobs =>
@@ -17,5 +18,19 @@ namespace JobProviderService.Infrastructure
 
         public IMongoCollection<JobApplication> JobApplication =>
            _database.GetCollection<JobApplication>("JobApplication");
+
+        public IMongoCollection<InterviewInvite> InterviewInvites =>
+            _database.GetCollection<InterviewInvite>("InterviewInvites");
+
+        public IMongoCollection<InterviewSession> InterviewSessions =>
+            _database.GetCollection<InterviewSession>("InterviewSessions");
+
+        public IMongoCollection<JobProviderSettings> JobProviderSettings =>
+            _database.GetCollection<JobProviderSettings>("JobProviderSettings");
+
+        public IMongoCollection<JobProviderProfile> JobProviderProfiles =>
+            _database.GetCollection<JobProviderProfile>("JobProviderProfiles");
+
+        
     }
 }

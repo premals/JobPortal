@@ -24,7 +24,8 @@ namespace JobSeekerService.Application.UseCases
             var app = new JobApplication
             {
                 JobId = request.JobId,
-                JobSeekerId = seeker.UserId
+                JobSeekerId = seeker.UserId,
+                JobProviderId = request.JobProviderId
             };
 
             await _repo.ApplyAsync(app);

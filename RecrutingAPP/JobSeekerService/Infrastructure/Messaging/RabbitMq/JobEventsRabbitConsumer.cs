@@ -1,4 +1,5 @@
-﻿using JobSeekerService.Application.Interfaces;
+using JobSeekerService.Application.EventHandler;
+using JobSeekerService.Application.Interfaces;
 using Microsoft.Extensions.Configuration;
 using MongoDB.Driver.Core.Connections;
 using RabbitMQ.Client;
@@ -56,7 +57,6 @@ namespace JobSeekerService.Infrastructure.Messaging.RabbitMq
 
             using var scope = _serviceProvider.CreateScope();
             var repo = scope.ServiceProvider.GetRequiredService<IJobReadRepository>();
-
             try
             {
                 if (json.Contains(nameof(JobCreatedEvent)))
@@ -78,6 +78,24 @@ namespace JobSeekerService.Infrastructure.Messaging.RabbitMq
                 {
                     var evt = JsonSerializer.Deserialize<JobClosedEvent>(json)!;
                     await repo.MarkClosedAsync(evt.JobId);
+                }
+                else if (json.Contains(nameof(JobApplicationStatusUpdatedEvent)))
+                {
+                    var evt = JsonSerializer.Deserialize<JobApplicationStatusUpdatedEvent>(json)!;
+
+                    var handler = scope.ServiceProvider
+                        .GetRequiredService<JobApplicationStatusUpdatedEventHandler>();
+
+                    await handler.HandleAsync(evt);
+                }
+                else if (json.Contains(nameof(InterviewInviteCreatedEvent)))
+                {
+                    var evt = JsonSerializer.Deserialize<InterviewInviteCreatedEvent>(json)!;
+
+                    var handler = scope.ServiceProvider
+                        .GetRequiredService<InterviewInviteCreatedEventHandler>();
+
+                    await handler.HandleAsync(evt);
                 }
 
                 _channel!.BasicAck(args.DeliveryTag, false);

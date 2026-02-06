@@ -8,7 +8,6 @@ namespace JobProviderService.Application
     {
         private readonly IJobRepository _repository;
         private readonly IEventBus _eventBus;
-
         public CreateJobUseCase(IJobRepository repository, IEventBus eventBus)
         {
             _repository = repository;

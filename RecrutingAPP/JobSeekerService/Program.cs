@@ -1,4 +1,4 @@
-using JobSeekerService.Application.EventHandler;
+ï»¿using JobSeekerService.Application.EventHandler;
 using JobSeekerService.Application.Interfaces;
 using JobSeekerService.Application.UseCases;
 using JobSeekerService.Infrastructure.AI;
@@ -40,20 +40,21 @@ builder.Services.AddSingleton<IMongoDatabase>(sp =>
 // =======================
 // MongoDbContext
 // =======================
-builder.Services.AddSingleton<MongoDbContext>();
+builder.Services.AddScoped<MongoDbContext>();
 
 // ================================
-// Dependency Injection – Repositories
+// Dependency Injection â€“ Repositories
 // ================================
 builder.Services.AddScoped<IJobReadRepository, JobReadRepository>();
 builder.Services.AddScoped<IJobApplicationRepository, JobApplicationRepository>();
 builder.Services.AddScoped<IJobSeekerRepository, JobSeekerRepository>();
+builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 //builder.Services.AddSingleton<JobReadIndexSeeder>();
 //builder.Services.AddSingleton<JobSeekerIndexSeeder>();
 //builder.Services.AddSingleton<JobApplicationIndexSeeder>();
 
 // ================================
-// Dependency Injection – Use Cases
+// Dependency Injection â€“ Use Cases
 // ================================
 builder.Services.AddScoped<BrowseJobsUseCase>();
 builder.Services.AddScoped<GetJobDetailsUseCase>();
@@ -118,6 +119,8 @@ else
 }
 
 builder.Services.AddScoped<JobSeekerRegisteredEventHandler>();
+builder.Services.AddScoped<JobApplicationStatusUpdatedEventHandler>();
+builder.Services.AddScoped<InterviewInviteCreatedEventHandler>();
 
 if (builder.Configuration["Messaging:Provider"] == "RabbitMQ")
 {
@@ -143,6 +146,7 @@ using (var scope = app.Services.CreateScope())
     await new JobReadIndexSeeder(database).CreateIndexesAsync();
     await new JobSeekerIndexSeeder(database).CreateIndexesAsync();
     await new JobApplicationIndexSeeder(database).CreateIndexesAsync();
+    await new NotificationIndexSeeder(database).CreateIndexesAsync();
 }
 
 // ================================
@@ -159,3 +163,10 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.Run();
+
+
+
+
+
+
+

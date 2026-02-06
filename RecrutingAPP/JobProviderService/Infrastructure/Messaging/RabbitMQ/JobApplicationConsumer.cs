@@ -59,7 +59,6 @@ namespace JobProviderService.Infrastructure.Messaging.RabbitMQ
                         case nameof(JobAppliedEvent):
                             {
                                 var evt = JsonSerializer.Deserialize<JobAppliedEvent>(json)!;
-
                                 var handler = scope.ServiceProvider
                                     .GetRequiredService<JobAppliedEventHandler>();
 
@@ -70,7 +69,6 @@ namespace JobProviderService.Infrastructure.Messaging.RabbitMQ
                         case nameof(JobApplicationWithdrawnEvent):
                             {
                                 var evt = JsonSerializer.Deserialize<JobApplicationWithdrawnEvent>(json)!;
-
                                 var handler = scope.ServiceProvider
                                     .GetRequiredService<JobApplicationWithdrawnEventHandler>();
 

@@ -6,8 +6,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace IdendityService.Services.UseCases
 {
-    public class RefreshTokenUseCase (UserManager<ApplicationUser> _userManager, IJwtService _jwtService, IRefreshTokenService _refreshTokenService) : IRefreshTokenUseCase
-    {
+public class RefreshTokenUseCase (UserManager<ApplicationUser> _userManager, IJwtService _jwtService, IRefreshTokenService _refreshTokenService) : IRefreshTokenUseCase
+{
 
         public async Task<DTOs.AuthResponseDto.AuthResponse> RefreshAsync(string token, string ip)
         {
@@ -38,7 +38,8 @@ namespace IdendityService.Services.UseCases
                 user.Id.ToString(),
                 user.FullName,
                 user.Email!,
-                roles.FirstOrDefault() ?? "JobSeeker"
+                roles.FirstOrDefault() ?? "JobSeeker",
+                user.ForcePasswordReset
             );
 
             return new DTOs.AuthResponseDto.AuthResponse(

@@ -5,17 +5,18 @@ using JobProviderService.Application.Interfaces;
 using JobProviderService.Application.UseCases;
 using JobProviderService.Domain;
 using JobProviderService.Infrastructure;
+using JobProviderService.Infrastructure.AI;
 using JobProviderService.Infrastructure.Indexes;
 using JobProviderService.Infrastructure.Messaging;
 using JobProviderService.Infrastructure.Messaging.Azure;
 using JobProviderService.Infrastructure.Messaging.RabbitMQ;
 using JobProviderService.Infrastructure.Repository;
+using JobProviderService.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using MongoDB.Driver;
-using System.Security.Claims;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -42,19 +43,31 @@ builder.Services.AddSingleton<IMongoDatabase>(sp =>
 // =======================
 // MongoDbContext
 // =======================
-builder.Services.AddSingleton<MongoDbContext>();
+builder.Services.AddScoped<MongoDbContext>();
 
 // =======================
 // Dependency Injection
 // =======================
 builder.Services.AddScoped<IJobRepository, JobRepository>();
 builder.Services.AddScoped<IJobApplicationRepository, JobApplicationRepository>();
+builder.Services.AddScoped<IInterviewRepository, InterviewRepository>();
+builder.Services.AddScoped<IJobProviderSettingsRepository, JobProviderSettingsRepository>();
+builder.Services.AddScoped<IJobProviderProfileRepository, JobProviderProfileRepository>();
 builder.Services.AddScoped<CreateJobUseCase>();
 builder.Services.AddScoped<UpdateJobUseCase>();
 builder.Services.AddScoped<DeleteJobUseCase>();
 builder.Services.AddScoped<UpdateJobPartialUseCase>();
+builder.Services.AddScoped<CreateInterviewInviteUseCase>();
+builder.Services.AddScoped<GetAiShortlistSuggestionUseCase>();
+builder.Services.AddScoped<InterviewSessionUseCase>();
+builder.Services.AddScoped<UpdateApplicationStatusUseCase>();
 builder.Services.AddScoped<JobAppliedEventHandler>();
 builder.Services.AddScoped<JobApplicationWithdrawnEventHandler>();
+builder.Services.AddScoped<IEmailService, ConsoleEmailService>();
+
+builder.Services.Configure<AzureOpenAiOptions>(
+    builder.Configuration.GetSection("AzureOpenAI"));
+builder.Services.AddHttpClient<IAiInterviewService, AzureOpenAiInterviewService>();
 
 // -----------------------------
 // Messaging Configuration
@@ -128,6 +141,8 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("RequireJobProvider",
         policy => policy.RequireRole("JobProvider"));
+    options.AddPolicy("RequireJobSeeker",
+        policy => policy.RequireRole("JobSeeker"));
 });
 
 builder.Services.AddCors(options =>

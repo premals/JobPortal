@@ -115,7 +115,7 @@ namespace JobSeekerService.Controllers
 
             application.Status = "Withdrawn";
             await _repository.UpdateAsync(application);
-            await _withdrawUseCase.ExecuteAsync(jobId, seekerId);
+            await _withdrawUseCase.ExecuteAsync(jobId, seekerId, application.JobProviderId);
 
             return Ok(new { message = "Application withdrawn successfully." });
         }

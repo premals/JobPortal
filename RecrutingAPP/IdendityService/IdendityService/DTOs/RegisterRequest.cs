@@ -16,5 +16,6 @@ namespace IdendityService.DTOs
 
         [Required]
         public string UserType { get; set; }
+
     }
 }

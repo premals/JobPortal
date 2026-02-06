@@ -11,6 +11,7 @@ namespace JobSeekerService.Domain.Entities
 
         public string JobId { get; set; } = null!;
         public string JobSeekerId { get; set; } = null!;
+        public string JobProviderId { get; set; } = null!;
         public string Status { get; set; } = "Applied";
 
         public DateTime AppliedAt { get; set; } = DateTime.UtcNow;

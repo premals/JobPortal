@@ -12,11 +12,12 @@ namespace JobSeekerService.Application.UseCases
             _eventBus = eventBus;
         }
 
-        public async Task ExecuteAsync(string jobId, string jobSeekerId)
+        public async Task ExecuteAsync(string jobId, string jobSeekerId, string jobProviderId)
         {
             await _eventBus.PublishAsync(new JobApplicationWithdrawnEvent
             {
                 JobId = jobId,
+                JobProviderId = jobProviderId,
                 JobSeekerId = jobSeekerId
             });
         }

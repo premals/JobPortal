@@ -1,5 +1,6 @@
 ﻿using Azure.Messaging.ServiceBus;
 using JobSeekerService.Application.EventHandler;
+using JobSeekerService.Application.Interfaces;
 using static Shared.Contracts.Events.JobEvents;
 
 namespace JobSeekerService.Infrastructure.Messaging.AzureServiceBus
