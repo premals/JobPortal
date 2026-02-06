@@ -3,19 +3,19 @@
     "Name": "New Profile",
     "Projects": [
       {
-        "Path": "..\\Gateway\\Gateway.csproj",
-        "Action": "StartWithoutDebugging"
-      },
-      {
-        "Path": "..\\IdendityService\\IdendityService\\IdendityService.csproj",
-        "Action": "StartWithoutDebugging"
-      },
-      {
-        "Path": "..\\JobProviderService\\JobProviderService.csproj",
+        "Path": "Gateway\\Gateway.csproj",
         "Action": "Start"
       },
       {
-        "Path": "..\\JobSeekerService\\JobSeekerService.csproj",
+        "Path": "IdendityService\\IdendityService\\IdendityService.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "JobProviderService\\JobProviderService.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "JobSeekerService\\JobSeekerService.csproj",
         "Action": "Start"
       }
     ]

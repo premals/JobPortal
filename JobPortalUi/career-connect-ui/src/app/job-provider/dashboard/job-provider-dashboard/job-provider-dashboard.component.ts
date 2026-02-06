@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { JobProviderService } from '../../../core/services/job-provider.service';
@@ -10,7 +10,7 @@ import { JobProviderService } from '../../../core/services/job-provider.service'
   templateUrl: './job-provider-dashboard.component.html',
   styleUrls: ['./job-provider-dashboard.component.scss']
 })
-export class JobProviderDashboardComponent implements OnInit {
+export class JobProviderDashboardComponent implements OnInit, OnDestroy {
   jobs: any[] = [];
   isLoading = true;
   isLoadingApplications = true;
@@ -31,6 +31,7 @@ export class JobProviderDashboardComponent implements OnInit {
   selectedInvites: any[] = [];
   calendarLoading = true;
   calendarError = '';
+  private calendarRefreshTimer: any;
 
   constructor(private jobService: JobProviderService) {}
 
@@ -53,6 +54,15 @@ export class JobProviderDashboardComponent implements OnInit {
     });
 
     this.loadCalendar();
+    this.calendarRefreshTimer = setInterval(() => {
+      this.loadCalendar();
+    }, 60000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.calendarRefreshTimer) {
+      clearInterval(this.calendarRefreshTimer);
+    }
   }
 
   get totalJobs(): number {

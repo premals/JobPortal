@@ -1,21 +1,388 @@
-<h3>Job Seeker Dashboard</h3>
-
-<div class="row mt-4">
-  <div class="col-md-4">
-    <div class="card text-bg-primary">
-      <div class="card-body">
-        <h5>Available Jobs</h5>
-        <h2>—</h2>
+<div class="seeker-dashboard">
+  <section class="hero">
+    <div class="hero-copy">
+      <span class="eyebrow">Job Seeker</span>
+      <h1>Your Career Command Center</h1>
+      <p>
+        Track shortlists, invitations, and video interviews in one place. Stay ready for the next move.
+      </p>
+      <div class="hero-actions">
+        <button class="btn btn-primary" (click)="navigateToJobs()">Explore Jobs</button>
+        <button class="btn btn-outline" (click)="editProfile()">Edit Profile</button>
+        <button class="btn btn-ghost" (click)="toggleNotifications()">
+          Notifications
+          <span class="pill" *ngIf="unreadNotifications > 0">{{ unreadNotifications }}</span>
+        </button>
       </div>
+      <div class="hero-metrics">
+        <div class="metric-card">
+          <span>Profile strength</span>
+          <strong>{{ profileCompletion }}%</strong>
+          <div class="progress-track">
+            <span class="progress-fill" [style.width.%]="profileCompletion"></span>
+          </div>
+        </div>
+        <div class="metric-card">
+          <span>Shortlisted</span>
+          <strong>{{ shortlistedCount }}</strong>
+          <small>Recruiter interest</small>
+        </div>
+        <div class="metric-card">
+          <span>Invitations</span>
+          <strong>{{ pendingInvitations }}</strong>
+          <small>Awaiting response</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-card">
+      <div class="profile-avatar">{{ getInitials(profile?.fullName) }}</div>
+      <div class="profile-info">
+        <h3>{{ profile?.fullName || 'Your Profile' }}</h3>
+        <p class="headline">{{ profile?.headline || 'Add a headline that describes your next role.' }}</p>
+        <div class="meta">
+          <span *ngIf="profile?.location">
+            <i class="bi bi-geo-alt"></i>
+            {{ profile?.location }}
+          </span>
+          <span *ngIf="profile?.experienceYears !== undefined">
+            <i class="bi bi-briefcase"></i>
+            {{ profile?.experienceYears }} yrs experience
+          </span>
+        </div>
+      </div>
+      <div class="skill-chips">
+        <span class="chip" *ngFor="let skill of profile?.skills | slice:0:6">{{ skill }}</span>
+        <span class="chip muted" *ngIf="(profile?.skills?.length || 0) > 6">
+          +{{ (profile?.skills?.length || 0) - 6 }} more
+        </span>
+      </div>
+      <div class="hero-card-actions">
+        <button class="btn btn-light" (click)="openProfileModal()">View Profile</button>
+        <button class="btn btn-outline" (click)="editProfile()">Update Profile</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="callout" *ngIf="!isProfileComplete && !isLoadingProfile">
+    <div class="callout-icon">
+      <i class="bi bi-exclamation-triangle"></i>
+    </div>
+    <div>
+      <h4>Complete your profile to unlock better matches</h4>
+      <p>Recruiters are reviewing candidates based on skills, education, and experience.</p>
+    </div>
+    <button class="btn btn-primary btn-sm" (click)="editProfile()">Complete Now</button>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card" (click)="navigateToApplications()">
+      <span>Applications</span>
+      <strong>{{ totalApplications }}</strong>
+      <small>{{ shortlistedCount }} shortlisted</small>
+    </div>
+    <div class="stat-card accent">
+      <span>Invitations</span>
+      <strong>{{ pendingInvitations }}</strong>
+      <small>Pending replies</small>
+    </div>
+    <div class="stat-card warm">
+      <span>Upcoming interviews</span>
+      <strong>{{ upcomingInterviews }}</strong>
+      <small>Schedule in progress</small>
+    </div>
+    <div class="stat-card fresh">
+      <span>Reports ready</span>
+      <strong>{{ reportsReady }}</strong>
+      <small>AI feedback available</small>
+    </div>
+    <div class="stat-card muted" (click)="navigateToResume()">
+      <span>AI Resume</span>
+      <strong>Builder</strong>
+      <small>ATS-friendly templates</small>
     </div>
   </div>
 
-  <div class="col-md-4">
-    <div class="card text-bg-info">
-      <div class="card-body">
-        <h5>My Applications</h5>
-        <h2>—</h2>
+  <div class="dashboard-grid">
+    <div class="main-column">
+      <section class="panel pipeline-panel">
+        <div class="panel-header">
+          <div>
+            <h3>Recruiter Connection</h3>
+            <p class="panel-subtitle">Connected to the job-provider pipeline you are progressing through.</p>
+          </div>
+          <button class="btn btn-ghost" (click)="navigateToApplications()">View Applications</button>
+        </div>
+        <div class="pipeline-steps">
+          <div class="pipeline-step" [class.active]="shortlistedCount > 0">
+            <span class="step-count">{{ shortlistedCount }}</span>
+            <div>
+              <h4>Shortlisted</h4>
+              <p>Recruiters flagged you as a priority candidate.</p>
+            </div>
+          </div>
+          <div class="pipeline-step" [class.active]="pendingInvitations > 0">
+            <span class="step-count">{{ pendingInvitations }}</span>
+            <div>
+              <h4>Invitations</h4>
+              <p>Accept the interview invite to unlock the video link.</p>
+            </div>
+          </div>
+          <div class="pipeline-step" [class.active]="upcomingInterviews > 0">
+            <span class="step-count">{{ upcomingInterviews }}</span>
+            <div>
+              <h4>Video Interview</h4>
+              <p>Record answers and submit when ready.</p>
+            </div>
+          </div>
+          <div class="pipeline-step" [class.active]="reportsReady > 0">
+            <span class="step-count">{{ reportsReady }}</span>
+            <div>
+              <h4>AI Report</h4>
+              <p>Review strengths and growth areas after submission.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" *ngIf="pendingInvitationsList.length > 0">
+        <div class="panel-header">
+          <div>
+            <h3>Interview Invitations</h3>
+            <p class="panel-subtitle">Respond quickly to secure your slot.</p>
+          </div>
+          <button class="btn btn-ghost" (click)="navigateToApplications()">See all</button>
+        </div>
+        <div class="invitation-list">
+          <div class="invitation-item" *ngFor="let invitation of pendingInvitationsList">
+            <div class="invitation-info">
+              <div class="company-logo" [class.empty]="!invitation.companyLogo">
+                <img *ngIf="invitation.companyLogo" [src]="invitation.companyLogo" alt="Company logo">
+                <span *ngIf="!invitation.companyLogo">{{ (invitation.companyName || invitation.jobTitle)?.[0] || '?' }}</span>
+              </div>
+              <div>
+                <h4>{{ invitation.companyName || invitation.jobTitle || 'Recruiter' }}</h4>
+                <p>{{ invitation.message ? (invitation.message | slice:0:90) + '...' : 'Interview invitation received.' }}</p>
+                <small *ngIf="invitation.expiresAt">Expires {{ invitation.expiresAt | date:'medium' }}</small>
+              </div>
+            </div>
+            <div class="invitation-actions">
+              <button class="btn btn-ghost" (click)="openInvitationModal(invitation)">Details</button>
+              <button class="btn btn-primary btn-sm" (click)="openInvitationModal(invitation)">Review & Accept</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h3>Upcoming Interviews</h3>
+            <p class="panel-subtitle">Launch your interview recording when ready.</p>
+          </div>
+        </div>
+        <div *ngIf="upcomingInterviewsList.length === 0" class="empty-state">
+          <i class="bi bi-calendar2-check"></i>
+          <p>No upcoming interviews yet.</p>
+        </div>
+        <div class="interview-list" *ngIf="upcomingInterviewsList.length > 0">
+          <div class="interview-card" *ngFor="let interview of upcomingInterviewsList">
+            <div>
+              <span class="status-pill" [ngClass]="interview.status">{{ interview.status }}</span>
+              <h4>{{ interview.companyName }}</h4>
+              <p class="interview-type">{{ interview.interviewType | titlecase }}</p>
+              <p class="interview-date" *ngIf="interview.scheduledDate">
+                Scheduled {{ interview.scheduledDate | date:'medium' }}
+              </p>
+            </div>
+            <div class="interview-actions">
+              <button
+                class="btn btn-primary btn-sm"
+                *ngIf="interview.interviewType === 'video-recording'"
+                (click)="openVideoInterview(interview)">
+                Record Answers
+              </button>
+              <button
+                class="btn btn-outline btn-sm"
+                *ngIf="interview.interviewType === 'live-interview'"
+                disabled>
+                Join Live
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" *ngIf="completedInterviewsList.length > 0">
+        <div class="panel-header">
+          <div>
+            <h3>Interview Reports</h3>
+            <p class="panel-subtitle">High-level summary of your recorded interview.</p>
+          </div>
+        </div>
+        <div class="report-list">
+          <div class="report-card" *ngFor="let interview of completedInterviewsList">
+            <div>
+              <h4>{{ interview.companyName }}</h4>
+              <p>Interview completed</p>
+            </div>
+            <button class="btn btn-ghost btn-sm" (click)="openAnalysis(interview)">View Report</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" *ngIf="recentApplications.length > 0">
+        <div class="panel-header">
+          <div>
+            <h3>Recent Applications</h3>
+            <p class="panel-subtitle">Your latest submitted roles.</p>
+          </div>
+          <button class="btn btn-ghost" (click)="navigateToApplications()">See all</button>
+        </div>
+        <div class="applications-list">
+          <div class="application-item" *ngFor="let app of recentApplications">
+            <div>
+              <h4>{{ app.jobTitle }}</h4>
+              <p>{{ app.company }}</p>
+            </div>
+            <div class="application-meta">
+              <span class="status-pill" [ngClass]="getStatusBadgeClass(app.status)">
+                {{ app.status | titlecase }}
+              </span>
+              <small>{{ app.appliedAt | date:'mediumDate' }}</small>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div
+        *ngIf="!isLoadingStats && pendingInvitationsList.length === 0 && upcomingInterviewsList.length === 0 && recentApplications.length === 0"
+        class="panel empty-state">
+        <i class="bi bi-compass"></i>
+        <h4>No activity yet</h4>
+        <p>Apply to roles and track your progress here.</p>
+        <button class="btn btn-primary" (click)="navigateToJobs()">Browse Jobs</button>
       </div>
+    </div>
+
+    <aside class="side-column">
+      <section class="panel quick-actions">
+        <div class="panel-header">
+          <h3>Quick Actions</h3>
+        </div>
+        <div class="action-list">
+          <button class="action-btn" (click)="navigateToJobs()">
+            <i class="bi bi-search"></i>
+            Browse Jobs
+          </button>
+          <button class="action-btn" (click)="navigateToApplications()">
+            <i class="bi bi-clipboard-check"></i>
+            My Applications
+          </button>
+          <button class="action-btn" (click)="navigateToResume()">
+            <i class="bi bi-file-earmark-text"></i>
+            AI Resume Builder
+          </button>
+          <button class="action-btn" (click)="editProfile()">
+            <i class="bi bi-pencil-square"></i>
+            Edit Profile
+          </button>
+        </div>
+      </section>
+
+      <section class="panel notification-preview">
+        <div class="panel-header">
+          <div>
+            <h3>Notifications</h3>
+            <p class="panel-subtitle">Shortlist updates and interview alerts.</p>
+          </div>
+          <button class="btn btn-ghost btn-sm" (click)="toggleNotifications()">Open</button>
+        </div>
+        <div *ngIf="recentNotifications.length === 0" class="empty-state small">
+          <p>No notifications yet.</p>
+        </div>
+        <div class="notification-list" *ngIf="recentNotifications.length > 0">
+          <div class="notification-item" *ngFor="let note of recentNotifications">
+            <div class="note-icon">
+              <i class="bi" [ngClass]="getNotificationIcon(note.type)"></i>
+            </div>
+            <div>
+              <h5>{{ note.title }}</h5>
+              <p>{{ note.message }}</p>
+              <small>{{ note.createdAt | date:'short' }}</small>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel profile-progress">
+        <div class="panel-header">
+          <h3>Profile Checklist</h3>
+        </div>
+        <div class="checklist">
+          <div class="check-item" *ngFor="let item of profileChecklist">
+            <i class="bi" [ngClass]="item.complete ? 'bi-check-circle-fill' : 'bi-circle'"></i>
+            <span>{{ item.label }}</span>
+          </div>
+        </div>
+        <button class="btn btn-outline btn-sm" (click)="editProfile()">Finish Profile</button>
+      </section>
+    </aside>
+  </div>
+
+  <app-profile-modal
+    *ngIf="showProfileModal"
+    [initialMode]="'view'"
+    (closed)="closeProfileModal()">
+  </app-profile-modal>
+
+  <app-profile-modal
+    *ngIf="showProfileEditModal"
+    [initialMode]="'edit'"
+    (closed)="closeProfileEditModal()">
+  </app-profile-modal>
+
+  <app-notification-panel
+    *ngIf="showNotifications"
+    (closed)="showNotifications = false">
+  </app-notification-panel>
+
+  <app-invitation-modal
+    *ngIf="showInvitationModal && selectedInvitation"
+    [invitation]="selectedInvitation"
+    (accepted)="handleInvitationAccepted($event)"
+    (closed)="closeInvitationModal()">
+  </app-invitation-modal>
+
+  <div class="overlay" *ngIf="showVideoInterview">
+    <div class="overlay-backdrop" (click)="closeVideoInterview()"></div>
+    <div class="overlay-card" (click)="$event.stopPropagation()">
+      <button class="overlay-close" (click)="closeVideoInterview()">×</button>
+      <div class="overlay-loading" *ngIf="isVideoInterviewLoading">
+        Loading interview session...
+      </div>
+      <app-video-interview
+        *ngIf="activeInterview && !isVideoInterviewLoading"
+        [interview]="activeInterview"
+        (submitted)="handleInterviewSubmitted($event)">
+      </app-video-interview>
+    </div>
+  </div>
+
+  <div class="overlay" *ngIf="showAnalysisModal">
+    <div class="overlay-backdrop" (click)="closeAnalysis()"></div>
+    <div class="overlay-card analysis" (click)="$event.stopPropagation()">
+      <button class="overlay-close" (click)="closeAnalysis()">×</button>
+      <div class="overlay-loading" *ngIf="isAnalysisLoading">
+        Preparing your interview analysis...
+      </div>
+      <div class="overlay-error" *ngIf="!isAnalysisLoading && analysisError">
+        {{ analysisError }}
+      </div>
+      <app-interview-analysis
+        *ngIf="activeAnalysis && !isAnalysisLoading"
+        [analysis]="activeAnalysis">
+      </app-interview-analysis>
     </div>
   </div>
 </div>

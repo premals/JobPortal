@@ -1,1 +1,82 @@
-<p>my-applications works!</p>
+<div class="applications-page">
+  <div class="page-hero">
+    <div>
+      <span class="eyebrow">Applications</span>
+      <h2>Track Your Progress</h2>
+      <p>Follow every role from application to interview and report.</p>
+    </div>
+    <div class="hero-actions">
+      <a class="btn btn-outline" routerLink="/job-seeker/jobs">Browse Jobs</a>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <i class="bi bi-search"></i>
+      <input
+        type="text"
+        class="form-control"
+        placeholder="Search by role or company"
+        [(ngModel)]="searchTerm"
+        (input)="applyFilters()">
+    </div>
+
+    <select class="form-select" [(ngModel)]="statusFilter" (change)="applyFilters()">
+      <option value="all">All statuses</option>
+      <option value="applied">Applied</option>
+      <option value="shortlisted">Shortlisted</option>
+      <option value="accepted">Accepted</option>
+      <option value="pending">Pending</option>
+      <option value="rejected">Rejected</option>
+    </select>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner-border text-primary"></div>
+  </div>
+
+  <div *ngIf="!isLoading && filteredApplications.length === 0" class="empty-state">
+    <i class="bi bi-inbox"></i>
+    <h4>No applications yet</h4>
+    <p>Start applying to roles to build your pipeline.</p>
+    <button class="btn btn-primary" routerLink="/job-seeker/jobs">Explore Jobs</button>
+  </div>
+
+  <div class="applications-grid" *ngIf="!isLoading && filteredApplications.length > 0">
+    <div class="application-card" *ngFor="let app of filteredApplications">
+      <div class="card-header">
+        <div>
+          <h4>{{ app.jobTitle || 'Role' }}</h4>
+          <p>{{ app.company || app.companyName || 'Company' }}</p>
+        </div>
+        <span class="status-pill" [ngClass]="getStatusClass(app.status)">
+          {{ app.status || 'Applied' }}
+        </span>
+      </div>
+
+      <div class="card-body">
+        <div class="meta-row">
+          <span>Applied on</span>
+          <strong>{{ app.appliedAt | date:'mediumDate' }}</strong>
+        </div>
+        <div class="meta-row" *ngIf="app.location">
+          <span>Location</span>
+          <strong>{{ app.location }}</strong>
+        </div>
+        <div class="meta-row" *ngIf="app.jobId">
+          <span>Job ID</span>
+          <strong>{{ app.jobId }}</strong>
+        </div>
+      </div>
+
+      <div class="card-actions">
+        <a class="btn btn-ghost" [routerLink]="['/job-seeker/jobs', app.jobId || app.id]">
+          View Job
+        </a>
+        <button class="btn btn-outline" (click)="withdraw(app)" [disabled]="isWithdrawing(app)">
+          Withdraw
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

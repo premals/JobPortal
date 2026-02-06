@@ -24,6 +24,55 @@
     </nav>
 
     <div class="jp-actions">
+      <div class="notification-wrapper">
+        <button class="notify-btn" (click)="toggleNotifications()">
+          <i class="bi bi-bell"></i>
+          <span class="badge" *ngIf="notificationCount > 0">{{ notificationCount }}</span>
+        </button>
+
+        <div class="notify-panel" *ngIf="showNotifications">
+          <div class="notify-header">
+            <div>
+              <h5>Notifications</h5>
+              <p>Accepted interview invitations</p>
+            </div>
+            <button class="icon-btn" (click)="closeNotifications()">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+
+          <div class="notify-body">
+            <div *ngIf="notificationsLoading" class="notify-loading">
+              Loading notifications...
+            </div>
+
+            <div *ngIf="!notificationsLoading && providerNotifications.length === 0" class="notify-empty">
+              No notifications yet.
+            </div>
+
+            <div class="notify-item" *ngFor="let invite of providerNotifications">
+              <div class="notify-icon">
+                <i class="bi bi-calendar-check"></i>
+              </div>
+              <div class="notify-content">
+                <h6>Invitation accepted</h6>
+                <p>
+                  {{ invite.candidateName || invite.candidateEmail || 'Candidate' }}
+                  accepted for {{ invite.jobTitle || 'a role' }}.
+                </p>
+                <small>{{ invite.selectedSlot | date:'medium' }}</small>
+              </div>
+              <a
+                class="notify-link"
+                [routerLink]="['/job-provider/jobs', invite.jobId, 'applications']"
+                (click)="closeNotifications()">
+                View
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="dropdown">
         <button
           class="btn btn-outline-light btn-sm dropdown-toggle"

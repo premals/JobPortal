@@ -22,7 +22,7 @@ namespace JobSeekerService.Infrastructure.Mongo
                 return null;
 
             return await _collection
-                .Find(p => p.Email == userId)
+                .Find(p => p.UserId == userId)
                 .FirstOrDefaultAsync();
         }
 

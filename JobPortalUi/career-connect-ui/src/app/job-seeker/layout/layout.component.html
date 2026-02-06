@@ -1,32 +1,33 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-success">
-  <div class="container-fluid">
-    <a class="navbar-brand">Job Seeker</a>
+<nav class="seeker-nav">
+  <div class="brand">
+    <div class="brand-mark"></div>
+    <div>
+      <span class="brand-title">Career Connect</span>
+      <span class="brand-subtitle">Job Seeker</span>
+    </div>
+  </div>
 
-    <ul class="navbar-nav me-auto">
-      <li class="nav-item">
-        <a class="nav-link" routerLink="/job-seeker">Dashboard</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" routerLink="/job-seeker/jobs">Jobs</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" routerLink="/job-seeker/applications">
-          Applications
-        </a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" routerLink="/job-seeker/resume">
-          AI Resume
-        </a>
-      </li>
-    </ul>
+  <div class="nav-links">
+    <a routerLink="/job-seeker" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Dashboard</a>
+    <a routerLink="/job-seeker/jobs" routerLinkActive="active">Jobs</a>
+    <a routerLink="/job-seeker/applications" routerLinkActive="active">Applications</a>
+    <a routerLink="/job-seeker/resume" routerLinkActive="active">AI Resume</a>
+  </div>
 
-    <button class="btn btn-outline-light btn-sm" routerLink="/profile">
-      Profile
+  <div class="nav-actions">
+    <button class="notification-btn" (click)="toggleNotifications()">
+      <i class="bi bi-bell"></i>
+      <span class="badge" *ngIf="unreadNotifications > 0">{{ unreadNotifications }}</span>
     </button>
+    <button class="profile-btn" routerLink="/profile">Profile</button>
   </div>
 </nav>
 
-<div class="container mt-4">
+<div class="page-shell">
   <router-outlet></router-outlet>
 </div>
+
+<app-notification-panel
+  *ngIf="showNotifications"
+  (closed)="showNotifications = false">
+</app-notification-panel>

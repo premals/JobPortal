@@ -1,0 +1,126 @@
+:host {
+  display: block;
+  font-family: "Sora", "Segoe UI", sans-serif;
+}
+
+.seeker-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 28px;
+  background: linear-gradient(120deg, #0f172a, #0f766e 55%, #0f172a);
+  color: #ffffff;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #14b8a6, #0ea5e9);
+  box-shadow: 0 10px 20px rgba(14, 165, 233, 0.3);
+}
+
+.brand-title {
+  display: block;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.brand-subtitle {
+  display: block;
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav-links a {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.nav-links a.active,
+.nav-links a:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.notification-btn {
+  position: relative;
+  border: none;
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.notification-btn .badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #f59e0b;
+  color: #0f172a;
+  border-radius: 999px;
+  padding: 2px 6px;
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+
+.profile-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 8px 16px;
+  background: #ffffff;
+  color: #0f766e;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.page-shell {
+  padding: 24px;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+@media (max-width: 900px) {
+  .seeker-nav {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .nav-links {
+    flex-wrap: wrap;
+  }
+
+  .page-shell {
+    padding: 20px;
+  }
+}
