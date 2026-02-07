@@ -1,0 +1,65 @@
+﻿.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.detail-list {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.detail-list span {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.detail-list strong {
+  display: block;
+  font-size: 0.95rem;
+  margin-top: 4px;
+}
+
+.verification,
+.meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.verification span,
+.meta-grid span {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.note-list {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.note {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  font-size: 0.85rem;
+}
+
+.note-input {
+  display: grid;
+  gap: 8px;
+}
+
+.muted {
+  color: #94a3b8;
+  font-size: 0.8rem;
+}
+

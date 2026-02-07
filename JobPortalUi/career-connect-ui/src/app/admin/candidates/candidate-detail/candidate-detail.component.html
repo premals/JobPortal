@@ -1,0 +1,116 @@
+﻿<section class="admin-page" *ngIf="candidate; else missing">
+  <div class="page-header">
+    <div class="page-title">
+      <h2>{{ candidate.fullName }}</h2>
+      <p>Candidate detail, resume insights, and admin actions.</p>
+    </div>
+    <div class="action-group">
+      <button class="btn btn-outline-warning btn-sm" (click)="toggleFlag()">
+        {{ candidate.status === 'Flagged' ? 'Unflag' : 'Flag Profile' }}
+      </button>
+      <button class="btn btn-outline-danger btn-sm" (click)="hideCandidate()">Hide Candidate</button>
+      <button class="btn btn-outline-primary btn-sm" (click)="exportJson()">Export JSON</button>
+      <button class="btn btn-outline-secondary btn-sm" disabled>PDF Placeholder</button>
+    </div>
+  </div>
+
+  <div class="detail-grid">
+    <div class="admin-panel">
+      <h5>Profile Overview</h5>
+      <div class="detail-list">
+        <div>
+          <span>Status</span>
+          <strong class="status-pill" [ngClass]="candidate.status.toLowerCase()">{{ candidate.status }}</strong>
+        </div>
+        <div>
+          <span>Completeness</span>
+          <strong>{{ candidate.profileCompleteness }}%</strong>
+        </div>
+        <div>
+          <span>Resume</span>
+          <strong>{{ candidate.resume.present ? 'Present' : 'Missing' }}</strong>
+        </div>
+        <div>
+          <span>Resume File</span>
+          <strong>{{ candidate.resume.fileName || 'N/A' }}</strong>
+        </div>
+        <div>
+          <span>Resume Updated</span>
+          <strong>{{ candidate.resume.updatedAt || 'N/A' }}</strong>
+        </div>
+        <div>
+          <span>Last Updated</span>
+          <strong>{{ candidate.lastUpdated | date: 'mediumDate' }}</strong>
+        </div>
+        <div>
+          <span>ATS Score</span>
+          <strong>{{ candidate.atsScore ?? 'Placeholder' }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-panel">
+      <h5>Skills & Education</h5>
+      <div class="skill-list">
+        <span class="skill" *ngFor="let skill of candidate.skills">{{ skill }}</span>
+      </div>
+      <div class="education-list">
+        <div class="education" *ngFor="let edu of candidate.education">{{ edu }}</div>
+      </div>
+    </div>
+
+    <div class="admin-panel">
+      <h5>Experience</h5>
+      <div class="experience-list">
+        <div class="experience" *ngFor="let exp of candidate.experience">
+          <div>
+            <strong>{{ exp.role }}</strong>
+            <div class="muted">{{ exp.company }}</div>
+          </div>
+          <span>{{ exp.start }} - {{ exp.end }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-panel">
+      <h5>Application History</h5>
+      <div class="history-list" *ngIf="candidate.applications.length > 0; else emptyApps">
+        <div class="history" *ngFor="let app of candidate.applications">
+          <div>
+            <strong>{{ app.jobTitle }}</strong>
+            <div class="muted">Applied {{ app.appliedAt | date: 'mediumDate' }}</div>
+          </div>
+          <span class="status-pill" [ngClass]="app.status.toLowerCase()">{{ app.status }}</span>
+        </div>
+      </div>
+      <ng-template #emptyApps>
+        <p class="muted">No applications yet.</p>
+      </ng-template>
+    </div>
+
+    <div class="admin-panel">
+      <h5>Admin Requests</h5>
+      <div class="request-list" *ngIf="candidate.adminRequests.length > 0; else emptyRequests">
+        <div class="request" *ngFor="let req of candidate.adminRequests">
+          <div>
+            <strong>{{ req.type }}</strong>
+            <div class="muted">{{ req.createdAt | date: 'medium' }}</div>
+          </div>
+          <span>{{ req.reason }}</span>
+        </div>
+      </div>
+      <ng-template #emptyRequests>
+        <p class="muted">No update requests yet.</p>
+      </ng-template>
+      <div class="note-input">
+        <textarea class="form-control" rows="3" [(ngModel)]="requestReason" placeholder="Request profile update"></textarea>
+        <button class="btn btn-outline-primary btn-sm" (click)="requestUpdate()">Send Request</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<ng-template #missing>
+  <div class="admin-panel">Candidate not found.</div>
+</ng-template>
+

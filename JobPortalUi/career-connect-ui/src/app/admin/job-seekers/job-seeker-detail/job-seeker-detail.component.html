@@ -1,0 +1,114 @@
+﻿<section class="admin-page" *ngIf="jobSeeker; else missing">
+  <div class="page-header">
+    <div class="page-title">
+      <h2>{{ jobSeeker.fullName }}</h2>
+      <p>Job seeker profile and admin actions.</p>
+    </div>
+    <div class="action-group">
+      <button class="btn btn-outline-secondary btn-sm" (click)="toggleEdit()">
+        {{ editMode ? 'Cancel' : 'Edit Safe Fields' }}
+      </button>
+      <button class="btn btn-outline-warning btn-sm" (click)="toggleSuspend()">
+        {{ jobSeeker.status === 'Suspended' ? 'Unsuspend' : 'Suspend' }}
+      </button>
+      <button class="btn btn-outline-danger btn-sm" (click)="toggleBlock()">
+        {{ jobSeeker.status === 'Blocked' ? 'Unblock' : 'Block' }}
+      </button>
+      <button class="btn btn-outline-primary btn-sm" (click)="resetPassword()">Reset Password</button>
+    </div>
+  </div>
+
+  <div class="detail-grid">
+    <div class="admin-panel">
+      <h5>Profile</h5>
+      <div class="detail-list">
+        <div>
+          <span>Status</span>
+          <strong class="status-pill" [ngClass]="jobSeeker.status.toLowerCase()">{{ jobSeeker.status }}</strong>
+        </div>
+        <div>
+          <span>Email</span>
+          <strong>{{ jobSeeker.email }}</strong>
+        </div>
+        <div>
+          <span>Phone</span>
+          <strong>{{ jobSeeker.phone }}</strong>
+        </div>
+        <div>
+          <span>City</span>
+          <strong>{{ jobSeeker.city }}</strong>
+        </div>
+        <div>
+          <span>Headline</span>
+          <strong>{{ jobSeeker.headline }}</strong>
+        </div>
+      </div>
+
+      <div class="verification">
+        <div>
+          <span>Email verified</span>
+          <strong>{{ jobSeeker.verifiedEmail ? 'Yes' : 'No' }}</strong>
+        </div>
+        <div>
+          <span>Phone verified</span>
+          <strong>{{ jobSeeker.verifiedPhone ? 'Yes' : 'No' }}</strong>
+        </div>
+      </div>
+
+      <div class="meta-grid">
+        <div>
+          <span>Created</span>
+          <strong>{{ jobSeeker.createdAt | date: 'medium' }}</strong>
+        </div>
+        <div>
+          <span>Last Login</span>
+          <strong>{{ jobSeeker.lastActiveAt | date: 'medium' }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-panel" *ngIf="editMode">
+      <h5>Edit Safe Fields</h5>
+      <div class="filter-grid">
+        <div>
+          <label class="form-label">Full Name</label>
+          <input class="form-control" [(ngModel)]="editModel.fullName" />
+        </div>
+        <div>
+          <label class="form-label">Phone</label>
+          <input class="form-control" [(ngModel)]="editModel.phone" />
+        </div>
+        <div>
+          <label class="form-label">City</label>
+          <input class="form-control" [(ngModel)]="editModel.city" />
+        </div>
+        <div>
+          <label class="form-label">Headline</label>
+          <input class="form-control" [(ngModel)]="editModel.headline" />
+        </div>
+      </div>
+      <div class="action-group">
+        <button class="btn btn-primary btn-sm" (click)="save()">Save Changes</button>
+      </div>
+    </div>
+
+    <div class="admin-panel">
+      <h5>Internal Notes</h5>
+      <div class="note-list" *ngIf="jobSeeker.notes.length > 0; else emptyNotes">
+        <div class="note" *ngFor="let note of jobSeeker.notes">{{ note }}</div>
+      </div>
+      <ng-template #emptyNotes>
+        <p class="muted">No internal notes yet.</p>
+      </ng-template>
+      <div class="note-input">
+        <textarea class="form-control" rows="3" [(ngModel)]="noteText" placeholder="Add internal note"></textarea>
+        <button class="btn btn-outline-primary btn-sm" (click)="addNote()">Add Note</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<ng-template #missing>
+  <div class="admin-panel">Job seeker not found.</div>
+</ng-template>
+

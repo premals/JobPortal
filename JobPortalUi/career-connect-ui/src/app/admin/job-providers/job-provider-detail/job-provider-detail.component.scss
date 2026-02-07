@@ -1,0 +1,48 @@
+﻿.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.detail-list {
+  display: grid;
+  gap: 12px;
+}
+
+.detail-list span {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.job-list,
+.note-list {
+  display: grid;
+  gap: 10px;
+}
+
+.job,
+.note {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.85rem;
+}
+
+.note-input {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.muted {
+  color: #94a3b8;
+  font-size: 0.8rem;
+}
+

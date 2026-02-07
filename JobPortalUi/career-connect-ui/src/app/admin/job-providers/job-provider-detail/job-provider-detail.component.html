@@ -1,0 +1,83 @@
+﻿<section class="admin-page" *ngIf="provider; else missing">
+  <div class="page-header">
+    <div class="page-title">
+      <h2>{{ provider.companyName }}</h2>
+      <p>{{ provider.contactName }} - {{ provider.email }}</p>
+    </div>
+    <div class="action-group">
+      <button class="btn btn-outline-warning btn-sm" (click)="toggleSuspend()">
+        {{ provider.status === 'Suspended' ? 'Unsuspend' : 'Suspend' }}
+      </button>
+      <button class="btn btn-outline-danger btn-sm" (click)="toggleBlock()">
+        {{ provider.status === 'Blocked' ? 'Unblock' : 'Block' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="detail-grid">
+    <div class="admin-panel">
+      <h5>Provider Snapshot</h5>
+      <div class="detail-list">
+        <div>
+          <span>Status</span>
+          <strong class="status-pill" [ngClass]="provider.status.toLowerCase()">{{ provider.status }}</strong>
+        </div>
+        <div>
+          <span>Created</span>
+          <strong>{{ provider.createdAt | date: 'mediumDate' }}</strong>
+        </div>
+        <div>
+          <span>City</span>
+          <strong>{{ provider.city }}</strong>
+        </div>
+        <div>
+          <span>Posted Jobs</span>
+          <strong>{{ provider.postedJobs.length }}</strong>
+        </div>
+        <div>
+          <span>Hires</span>
+          <strong>{{ provider.hires }}</strong>
+        </div>
+        <div>
+          <span>Complaints</span>
+          <strong>{{ provider.complaints }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-panel">
+      <h5>Posted Jobs</h5>
+      <div class="job-list" *ngIf="provider.postedJobs.length > 0; else noJobs">
+        <div class="job" *ngFor="let job of provider.postedJobs">
+          <div>
+            <strong>{{ job.title }}</strong>
+            <div class="muted">{{ job.id }}</div>
+          </div>
+          <span class="status-pill" [ngClass]="job.status.toLowerCase()">{{ job.status }}</span>
+        </div>
+      </div>
+      <ng-template #noJobs>
+        <p class="muted">No jobs posted yet.</p>
+      </ng-template>
+    </div>
+
+    <div class="admin-panel">
+      <h5>Internal Notes</h5>
+      <div class="note-list" *ngIf="provider.notes.length > 0; else noNotes">
+        <div class="note" *ngFor="let note of provider.notes">{{ note }}</div>
+      </div>
+      <ng-template #noNotes>
+        <p class="muted">No notes yet.</p>
+      </ng-template>
+      <div class="note-input">
+        <textarea class="form-control" rows="3" [(ngModel)]="noteText" placeholder="Add internal note"></textarea>
+        <button class="btn btn-outline-primary btn-sm" (click)="addNote()">Add Note</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<ng-template #missing>
+  <div class="admin-panel">Job provider not found.</div>
+</ng-template>
+

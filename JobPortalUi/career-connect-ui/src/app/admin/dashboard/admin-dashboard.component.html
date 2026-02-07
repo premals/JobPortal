@@ -1,0 +1,138 @@
+﻿<section class="admin-page">
+  <div class="page-header">
+    <div class="page-title">
+      <h2>Admin Dashboard</h2>
+      <p>Unified oversight across users, jobs, and hiring pipelines.</p>
+    </div>
+    <div class="action-group">
+      <button class="btn btn-primary btn-sm">Export Snapshot</button>
+      <button class="btn btn-outline-secondary btn-sm">Refresh</button>
+    </div>
+  </div>
+
+  <div class="admin-card-grid">
+    <div class="admin-card">
+      <span>Total Job Seekers</span>
+      <strong>{{ totalJobSeekers }}</strong>
+    </div>
+    <div class="admin-card">
+      <span>Total Job Providers</span>
+      <strong>{{ totalJobProviders }}</strong>
+    </div>
+    <div class="admin-card">
+      <span>Total Jobs Posted</span>
+      <strong>{{ totalJobsPosted }}</strong>
+    </div>
+    <div class="admin-card">
+      <span>Total Applications</span>
+      <strong>{{ totalApplications }}</strong>
+    </div>
+    <div class="admin-card">
+      <span>Total Hires</span>
+      <strong>{{ totalHires }}</strong>
+    </div>
+    <div class="admin-card">
+      <span>Active Users</span>
+      <strong>{{ activeUsers }}</strong>
+      <small class="muted">Blocked: {{ blockedUsers }}</small>
+    </div>
+  </div>
+
+  <div class="admin-panel">
+    <div class="page-title">
+      <h5>Filters</h5>
+      <p>Limit dashboard insights by date, status, and city.</p>
+    </div>
+    <div class="filter-grid">
+      <div>
+        <label class="form-label">From</label>
+        <input class="form-control" type="date" [(ngModel)]="filters.from" />
+      </div>
+      <div>
+        <label class="form-label">To</label>
+        <input class="form-control" type="date" [(ngModel)]="filters.to" />
+      </div>
+      <div>
+        <label class="form-label">Status</label>
+        <select class="form-select" [(ngModel)]="filters.status">
+          <option value="all">All statuses</option>
+          <option value="Applied">Applied</option>
+          <option value="Screening">Screening</option>
+          <option value="Interview">Interview</option>
+          <option value="Offer">Offer</option>
+          <option value="Hired">Hired</option>
+          <option value="Rejected">Rejected</option>
+          <option value="Withdrawn">Withdrawn</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">City</label>
+        <select class="form-select" [(ngModel)]="filters.city">
+          <option value="all">All cities</option>
+          <option *ngFor="let city of availableCities" [value]="city">{{ city }}</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-grid">
+    <div class="chart-card">
+      <div class="chart-header">
+        <h5>Applications by Status</h5>
+        <span>{{ filteredApplications.length }} total</span>
+      </div>
+      <div class="chart-list">
+        <div class="chart-row" *ngFor="let item of applicationsByStatus">
+          <div class="label">{{ item.label }}</div>
+          <div class="bar-track">
+            <div class="bar-fill" [style.width.%]="percent(item.value, statusMax)"></div>
+          </div>
+          <div class="value">{{ item.value }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-header">
+        <h5>Hires by Month</h5>
+        <span>Last 6 months</span>
+      </div>
+      <div class="chart-list">
+        <div class="chart-row" *ngFor="let item of hiresByMonth">
+          <div class="label">{{ item.label }}</div>
+          <div class="bar-track">
+            <div class="bar-fill green" [style.width.%]="percent(item.value, hiresMax)"></div>
+          </div>
+          <div class="value">{{ item.value }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-header">
+        <h5>Top Cities</h5>
+        <span>By active profiles</span>
+      </div>
+      <div class="tag-list">
+        <div class="tag" *ngFor="let city of topCities">
+          <span>{{ city.label }}</span>
+          <strong>{{ city.value }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-header">
+        <h5>Top Skills</h5>
+        <span>Across candidates</span>
+      </div>
+      <div class="tag-list">
+        <div class="tag" *ngFor="let skill of topSkills">
+          <span>{{ skill.label }}</span>
+          <strong>{{ skill.value }}</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+

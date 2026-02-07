@@ -1,0 +1,60 @@
+﻿.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.timeline {
+  display: grid;
+  gap: 12px;
+}
+
+.timeline-item {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: #2563eb;
+}
+
+.note-list {
+  display: grid;
+  gap: 10px;
+}
+
+.note {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  font-size: 0.85rem;
+}
+
+.action-block {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.section-title {
+  margin-top: 16px;
+}
+
+.note-input {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.muted {
+  color: #94a3b8;
+  font-size: 0.8rem;
+}
+

@@ -4,30 +4,65 @@
 }
 
 .seeker-nav {
+  --nav-ink: #e2e8f0;
+  --nav-ink-strong: #ffffff;
+  --nav-muted: rgba(226, 232, 240, 0.65);
+  --nav-accent: #22d3ee;
+  --nav-accent-2: #38bdf8;
+  --nav-accent-3: #34d399;
+  --nav-shadow: rgba(15, 23, 42, 0.45);
+  --nav-glow: rgba(56, 189, 248, 0.25);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
   padding: 16px 28px;
-  background: linear-gradient(120deg, #0f172a, #0f766e 55%, #0f172a);
+  background:
+    radial-gradient(120% 160% at 0% 0%, rgba(56, 189, 248, 0.3), transparent 55%),
+    radial-gradient(120% 120% at 100% 0%, rgba(34, 211, 238, 0.25), transparent 60%),
+    linear-gradient(125deg, #0f172a 5%, #0b2535 45%, #0f172a 100%);
   color: #ffffff;
   position: sticky;
   top: 0;
   z-index: 100;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+  box-shadow: 0 18px 40px var(--nav-shadow);
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+}
+
+.seeker-nav::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, rgba(255, 255, 255, 0.08), transparent 60%);
+  pointer-events: none;
 }
 
 .brand {
   display: flex;
   align-items: center;
   gap: 12px;
+  position: relative;
+  z-index: 1;
 }
 
 .brand-mark {
   width: 36px;
   height: 36px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #14b8a6, #0ea5e9);
-  box-shadow: 0 10px 20px rgba(14, 165, 233, 0.3);
+  background: linear-gradient(135deg, #22d3ee, #38bdf8 45%, #34d399 100%);
+  box-shadow: 0 10px 24px var(--nav-glow);
+  display: grid;
+  place-items: center;
+  color: #0f172a;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  font-size: 0.78rem;
+}
+
+.brand-mark::after {
+  content: "CC";
 }
 
 .brand-title {
@@ -39,47 +74,74 @@
 .brand-subtitle {
   display: block;
   font-size: 0.75rem;
-  opacity: 0.7;
+  color: var(--nav-muted);
 }
 
 .nav-links {
   display: flex;
   align-items: center;
   gap: 12px;
+  position: relative;
+  z-index: 1;
 }
 
 .nav-links a {
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--nav-muted);
   text-decoration: none;
-  padding: 6px 14px;
+  padding: 8px 16px;
   border-radius: 999px;
-  font-size: 0.85rem;
-  transition: background 0.2s ease, color 0.2s ease;
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+  position: relative;
 }
 
 .nav-links a.active,
 .nav-links a:hover {
-  background: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
+  background: rgba(255, 255, 255, 0.16);
+  color: var(--nav-ink-strong);
+  transform: translateY(-1px);
+}
+
+.nav-links a.active::after {
+  content: "";
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: -6px;
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--nav-accent), var(--nav-accent-3));
+  box-shadow: 0 6px 14px rgba(56, 189, 248, 0.4);
 }
 
 .nav-actions {
   display: flex;
   align-items: center;
   gap: 12px;
+  position: relative;
+  z-index: 1;
 }
 
 .notification-btn {
   position: relative;
   border: none;
-  background: rgba(255, 255, 255, 0.16);
-  color: #ffffff;
+  background: rgba(15, 23, 42, 0.35);
+  color: var(--nav-ink);
   width: 40px;
   height: 40px;
   border-radius: 50%;
   display: grid;
   place-items: center;
   cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.notification-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.35), 0 10px 20px rgba(15, 23, 42, 0.25);
 }
 
 .notification-btn .badge {
@@ -98,10 +160,17 @@
   border: none;
   border-radius: 999px;
   padding: 8px 16px;
-  background: #ffffff;
-  color: #0f766e;
+  background: linear-gradient(120deg, #ffffff, #e0f2fe);
+  color: #0f172a;
   font-weight: 600;
   cursor: pointer;
+  box-shadow: 0 10px 18px rgba(15, 23, 42, 0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.profile-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 24px rgba(15, 23, 42, 0.3);
 }
 
 .page-shell {
@@ -114,10 +183,15 @@
   .seeker-nav {
     flex-direction: column;
     align-items: flex-start;
+    padding: 18px 20px;
   }
 
   .nav-links {
     flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 8px;
   }
 
   .page-shell {

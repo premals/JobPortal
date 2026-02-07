@@ -67,6 +67,9 @@ export class LoginComponent {
         else if (res.profile.userType === 'JobSeeker') {
           this.router.navigate(['/job-seeker']);
         }
+        else if (res.profile.userType === 'Admin') {
+          this.router.navigate(['/admin']);
+        }
         else {
           this.router.navigate(['/profile']);
         }

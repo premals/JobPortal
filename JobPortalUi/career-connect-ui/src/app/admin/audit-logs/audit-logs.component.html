@@ -1,0 +1,74 @@
+﻿<section class="admin-page">
+  <div class="page-header">
+    <div class="page-title">
+      <h2>Audit Logs</h2>
+      <p>Track all administrative actions and reasons.</p>
+    </div>
+  </div>
+
+  <div class="admin-panel">
+    <div class="filter-grid">
+      <div>
+        <label class="form-label">Search</label>
+        <input class="form-control" placeholder="Admin or entity ID" [(ngModel)]="searchTerm" (input)="applyFilters()" />
+      </div>
+      <div>
+        <label class="form-label">Action</label>
+        <select class="form-select" [(ngModel)]="actionFilter" (change)="applyFilters()">
+          <option value="all">All actions</option>
+          <option *ngFor="let log of logs" [value]="log.action">{{ log.action }}</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Entity Type</label>
+        <select class="form-select" [(ngModel)]="entityFilter" (change)="applyFilters()">
+          <option value="all">All entities</option>
+          <option *ngFor="let log of logs" [value]="log.entityType">{{ log.entityType }}</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">From</label>
+        <input class="form-control" type="date" [(ngModel)]="dateFrom" (change)="applyFilters()" />
+      </div>
+      <div>
+        <label class="form-label">To</label>
+        <input class="form-control" type="date" [(ngModel)]="dateTo" (change)="applyFilters()" />
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-panel">
+    <table class="admin-table" *ngIf="filtered.length > 0">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Admin</th>
+          <th>Action</th>
+          <th>Entity</th>
+          <th>Old Value</th>
+          <th>New Value</th>
+          <th>Reason</th>
+          <th>IP</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let log of filtered">
+          <td>{{ log.timestamp | date: 'short' }}</td>
+          <td>{{ log.adminUserId }}</td>
+          <td>{{ log.action }}</td>
+          <td>{{ log.entityType }} - {{ log.entityId }}</td>
+          <td>{{ log.oldValue || 'N/A' }}</td>
+          <td>{{ log.newValue || 'N/A' }}</td>
+          <td>{{ log.reason || 'N/A' }}</td>
+          <td>{{ log.ipAddress || 'N/A' }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="filtered.length === 0" class="empty-state">
+      <i class="bi bi-journal-text"></i>
+      <p>No audit logs for the selected filters.</p>
+    </div>
+  </div>
+</section>
+

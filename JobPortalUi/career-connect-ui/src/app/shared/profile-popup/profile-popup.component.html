@@ -42,6 +42,12 @@
       </a>
     </li>
 
+    <li *ngIf="userType === 'Admin'">
+      <a class="dropdown-item" (click)="navigate('/admin')">
+        Admin Console
+      </a>
+    </li>
+
     <li><hr class="dropdown-divider"></li>
 
     <li>

@@ -1,0 +1,79 @@
+﻿<section class="admin-page">
+  <div class="page-header">
+    <div class="page-title">
+      <h2>Reports & Moderation Queue</h2>
+      <p>Handle user-submitted reports and safety actions.</p>
+    </div>
+  </div>
+
+  <div class="admin-panel">
+    <div class="filter-grid">
+      <div>
+        <label class="form-label">Search</label>
+        <input class="form-control" placeholder="Target or reporter" [(ngModel)]="searchTerm" (input)="applyFilters()" />
+      </div>
+      <div>
+        <label class="form-label">Type</label>
+        <select class="form-select" [(ngModel)]="typeFilter" (change)="applyFilters()">
+          <option value="all">All</option>
+          <option value="Fake Job">Fake Job</option>
+          <option value="Abuse">Abuse</option>
+          <option value="Spam">Spam</option>
+          <option value="Harassment">Harassment</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Status</label>
+        <select class="form-select" [(ngModel)]="statusFilter" (change)="applyFilters()">
+          <option value="all">All</option>
+          <option value="Open">Open</option>
+          <option value="Resolved">Resolved</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-panel">
+    <table class="admin-table" *ngIf="filtered.length > 0">
+      <thead>
+        <tr>
+          <th>Report</th>
+          <th>Target</th>
+          <th>Reporter</th>
+          <th>Status</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let report of filtered">
+          <td>
+            <div class="row-title">{{ report.type }}</div>
+            <div class="row-sub">{{ report.recommendation }}</div>
+          </td>
+          <td>{{ report.targetName }}</td>
+          <td>{{ report.reporter }}</td>
+          <td>
+            <span class="status-pill" [ngClass]="report.status.toLowerCase()">{{ report.status }}</span>
+          </td>
+          <td>{{ report.createdAt | date: 'mediumDate' }}</td>
+          <td>
+            <div class="action-group">
+              <button class="btn btn-outline-primary btn-sm" (click)="resolveReport(report)">Resolve</button>
+              <button class="btn btn-outline-danger btn-sm" (click)="banUser(report)">Ban User</button>
+              <button class="btn btn-outline-secondary btn-sm" (click)="hideTarget(report)">
+                {{ report.targetType === 'Job' ? 'Hide Job' : 'Hide Profile' }}
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="filtered.length === 0" class="empty-state">
+      <i class="bi bi-flag"></i>
+      <p>No reports in the queue.</p>
+    </div>
+  </div>
+</section>
+

@@ -1,0 +1,107 @@
+﻿<div class="admin-shell" [class.sidebar-open]="sidebarOpen">
+  <aside class="admin-sidebar">
+    <div class="brand">
+      <div class="brand-mark">CC</div>
+      <div>
+        <div class="brand-title">Career Connect</div>
+        <div class="brand-sub">Admin Console</div>
+      </div>
+    </div>
+
+    <nav class="admin-nav">
+      <div class="nav-section">
+        <span class="nav-label">Overview</span>
+        <a
+          routerLink="/admin"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }">
+          <i class="bi bi-speedometer2"></i>
+          Dashboard
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <span class="nav-label">People</span>
+        <a routerLink="/admin/job-seekers" routerLinkActive="active">
+          <i class="bi bi-person-lines-fill"></i>
+          Job Seekers
+        </a>
+        <a routerLink="/admin/candidates" routerLinkActive="active">
+          <i class="bi bi-people"></i>
+          Candidates
+        </a>
+        <a routerLink="/admin/job-providers" routerLinkActive="active">
+          <i class="bi bi-building"></i>
+          Job Providers
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <span class="nav-label">Pipeline</span>
+        <a routerLink="/admin/hiring" routerLinkActive="active">
+          <i class="bi bi-diagram-3"></i>
+          Hiring Details
+        </a>
+        <a routerLink="/admin/jobs-moderation" routerLinkActive="active">
+          <i class="bi bi-shield-check"></i>
+          Jobs Moderation
+        </a>
+        <a routerLink="/admin/reports" routerLinkActive="active">
+          <i class="bi bi-flag"></i>
+          Reports Queue
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <span class="nav-label">System</span>
+        <a routerLink="/admin/master-data" routerLinkActive="active">
+          <i class="bi bi-sliders"></i>
+          Master Data
+        </a>
+        <a routerLink="/admin/audit-logs" routerLinkActive="active">
+          <i class="bi bi-journal-text"></i>
+          Audit Logs
+        </a>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-avatar">{{ adminName.charAt(0) || 'A' }}</div>
+        <div>
+          <div class="user-name">{{ adminName }}</div>
+          <div class="user-email">{{ adminEmail || 'admin@careerconnect.io' }}</div>
+        </div>
+      </div>
+      <button class="btn btn-outline-light btn-sm w-100" (click)="logout()">
+        Logout
+      </button>
+    </div>
+  </aside>
+
+  <div class="admin-body">
+    <header class="admin-topbar">
+      <button class="sidebar-toggle" (click)="toggleSidebar()">
+        <i class="bi bi-list"></i>
+      </button>
+      <div class="topbar-title">
+        <span class="kicker">Admin</span>
+        <strong>Command Center</strong>
+      </div>
+      <div class="topbar-actions">
+        <div class="chip muted">
+          <i class="bi bi-shield-check"></i>
+          Role: Admin
+        </div>
+        <a class="btn btn-outline-primary btn-sm" routerLink="/admin/audit-logs">
+          View Audit Logs
+        </a>
+      </div>
+    </header>
+
+    <main class="admin-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>
+

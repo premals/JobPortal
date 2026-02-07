@@ -1,0 +1,43 @@
+﻿<section class="admin-page">
+  <div class="page-header">
+    <div class="page-title">
+      <h2>Master Data & Configuration</h2>
+      <p>Manage skills, industries, locations, and system templates.</p>
+    </div>
+  </div>
+
+  <div class="admin-panel" *ngFor="let section of sections">
+    <h5>{{ section.label }}</h5>
+    <div class="chip-grid">
+      <span class="chip-item" *ngFor="let item of masterData[section.key]">
+        {{ item }}
+        <button class="chip-remove" (click)="removeItem(section.key, item)">
+          <i class="bi bi-x"></i>
+        </button>
+      </span>
+    </div>
+    <div class="add-row">
+      <input
+        class="form-control"
+        [placeholder]="section.placeholder"
+        [(ngModel)]="newItem[section.key]" />
+      <button class="btn btn-outline-primary btn-sm" (click)="addItem(section.key)">Add</button>
+    </div>
+  </div>
+
+  <div class="admin-panel">
+    <h5>Email Templates</h5>
+    <p class="muted">Placeholder for template management.</p>
+    <div class="template-list">
+      <div class="template" *ngFor="let template of masterData.emailTemplates">
+        <div>
+          <strong>{{ template.name }}</strong>
+          <div class="muted">{{ template.id }}</div>
+        </div>
+        <span class="status-pill" [ngClass]="template.status.toLowerCase()">{{ template.status }}</span>
+        <button class="btn btn-outline-secondary btn-sm" disabled>Edit</button>
+      </div>
+    </div>
+  </div>
+</section>
+

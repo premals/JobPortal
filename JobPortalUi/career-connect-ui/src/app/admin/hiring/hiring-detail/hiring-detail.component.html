@@ -1,0 +1,92 @@
+﻿<section class="admin-page" *ngIf="application; else missing">
+  <div class="page-header">
+    <div class="page-title">
+      <h2>{{ application.candidateName }} - {{ application.jobTitle }}</h2>
+      <p>{{ application.jobProvider }} - {{ application.city }}</p>
+    </div>
+    <div class="action-group">
+      <span class="status-pill" [ngClass]="application.stage.toLowerCase()">{{ application.stage }}</span>
+    </div>
+  </div>
+
+  <div class="detail-grid">
+    <div class="admin-panel">
+      <h5>Application Timeline</h5>
+      <div class="timeline">
+        <div class="timeline-item" *ngFor="let item of application.timeline">
+          <div class="dot"></div>
+          <div>
+            <strong>{{ item.stage }}</strong>
+            <div class="muted">{{ item.date | date: 'medium' }}</div>
+            <div class="note" *ngIf="item.note">{{ item.note }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-panel">
+      <h5>Interview Notes</h5>
+      <div class="note-list" *ngIf="application.interviewNotes.length > 0; else noInterview">
+        <div class="note" *ngFor="let note of application.interviewNotes">{{ note }}</div>
+      </div>
+      <ng-template #noInterview>
+        <p class="muted">No interview notes yet.</p>
+      </ng-template>
+    </div>
+
+    <div class="admin-panel">
+      <h5>Offer Details</h5>
+      <p>{{ application.offerDetails || 'No offer details captured.' }}</p>
+      <h5 class="section-title">Decision Reason</h5>
+      <p>{{ application.decisionReason || 'Decision pending.' }}</p>
+    </div>
+
+    <div class="admin-panel">
+      <h5>Admin Actions</h5>
+      <div class="action-block">
+        <label class="form-label">Move Stage</label>
+        <select class="form-select" [(ngModel)]="moveStageValue">
+          <option value="">Select stage</option>
+          <option *ngFor="let stage of stages" [value]="stage">{{ stage }}</option>
+        </select>
+        <input class="form-control" [(ngModel)]="moveReason" placeholder="Reason" />
+        <button class="btn btn-outline-primary btn-sm" (click)="applyStageMove()">Move Stage</button>
+      </div>
+
+      <div class="action-block">
+        <label class="form-label">Override Status</label>
+        <select class="form-select" [(ngModel)]="overrideStageValue">
+          <option value="">Select final status</option>
+          <option *ngFor="let stage of finalStages" [value]="stage">{{ stage }}</option>
+        </select>
+        <input class="form-control" [(ngModel)]="overrideReason" placeholder="Reason" />
+        <button class="btn btn-outline-danger btn-sm" (click)="applyOverride()">Override Status</button>
+      </div>
+
+      <div class="action-block">
+        <label class="form-label">Assign Recruiter</label>
+        <input class="form-control" [(ngModel)]="newRecruiter" placeholder="Recruiter name" />
+        <button class="btn btn-outline-secondary btn-sm" (click)="assignRecruiter()">Assign</button>
+      </div>
+    </div>
+
+    <div class="admin-panel">
+      <h5>Internal Notes</h5>
+      <div class="note-list" *ngIf="application.internalNotes.length > 0; else noNotes">
+        <div class="note" *ngFor="let note of application.internalNotes">{{ note }}</div>
+      </div>
+      <ng-template #noNotes>
+        <p class="muted">No internal notes yet.</p>
+      </ng-template>
+      <div class="note-input">
+        <textarea class="form-control" rows="3" [(ngModel)]="noteText" placeholder="Add internal note"></textarea>
+        <button class="btn btn-outline-primary btn-sm" (click)="addInternalNote()">Add Note</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<ng-template #missing>
+  <div class="admin-panel">Application not found.</div>
+</ng-template>
+
