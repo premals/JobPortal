@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.2.11415.280 d18.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdminSeeder", "AdminSeeder.csproj", "{02A57CBB-9604-CE61-FD31-B9DF815847FE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{02A57CBB-9604-CE61-FD31-B9DF815847FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{02A57CBB-9604-CE61-FD31-B9DF815847FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{02A57CBB-9604-CE61-FD31-B9DF815847FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{02A57CBB-9604-CE61-FD31-B9DF815847FE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6F055C18-54C6-4D0B-BD0F-1838F7C6C9C9}
+	EndGlobalSection
+EndGlobal

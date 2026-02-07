@@ -1,4 +1,4 @@
-﻿using IdendityService.DTOs;
+using IdendityService.DTOs;
 using IdendityService.Infrastructure.Messaging;
 using IdendityService.Interfaces;
 using IdendityService.Interfaces.Auth;
@@ -34,8 +34,8 @@ namespace IdendityService.Services.UseCases
                 return Result.Fail("Email already exists.");
 
 
-            // 🔐 VALIDATE ROLE
-            var allowedRoles = new[] { "JobProvider", "JobSeeker", "Admin" };
+            // ?? VALIDATE ROLE
+            var allowedRoles = new[] { "JobProvider", "JobSeeker" };
             if (!allowedRoles.Contains(request.UserType))
                 return Result.Fail("Invalid user type.");
 
@@ -55,6 +55,15 @@ namespace IdendityService.Services.UseCases
             if (string.Equals(request.UserType, "JobSeeker", StringComparison.OrdinalIgnoreCase))
             {
                 await _eventBus.PublishAsync(new JobSeekerRegisteredEvent
+                {
+                    UserId = user.Id.ToString(),
+                    FullName = user.FullName,
+                    Email = user.Email!
+                });
+            }
+            else if (string.Equals(request.UserType, "JobProvider", StringComparison.OrdinalIgnoreCase))
+            {
+                await _eventBus.PublishAsync(new JobProviderRegisteredEvent
                 {
                     UserId = user.Id.ToString(),
                     FullName = user.FullName,

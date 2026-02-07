@@ -6,6 +6,18 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
+          "Port": 5400
+        }
+      ],
+      "UpstreamPathTemplate": "/admin/{everything}",
+      "UpstreamHttpMethod": [ "POST", "GET", "PUT", "DELETE", "PATCH", "OPTIONS" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/admin/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
           "Port": 5198
         }
       ],

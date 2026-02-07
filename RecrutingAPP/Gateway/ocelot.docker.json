@@ -1,5 +1,17 @@
-﻿{
+{
   "Routes": [
+    {
+      "DownstreamPathTemplate": "/api/admin/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "admin-service",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/admin/{everything}",
+      "UpstreamHttpMethod": [ "POST", "GET", "PUT", "DELETE", "PATCH", "OPTIONS" ]
+    },
     {
       "DownstreamPathTemplate": "/api/admin/{everything}",
       "DownstreamScheme": "http",

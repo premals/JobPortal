@@ -1,9 +1,11 @@
 using JobProviderService.Application.Interfaces;
 using JobProviderService.Domain;
 using JobProviderService.DTO;
+using JobProviderService.Infrastructure.Messaging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using static Shared.Contracts.Events.JobEvents;
 
 namespace JobProviderService.Controllers
 {
@@ -13,10 +15,12 @@ namespace JobProviderService.Controllers
     public class JobProviderProfileController : ControllerBase
     {
         private readonly IJobProviderProfileRepository _repository;
+        private readonly IEventBus _eventBus;
 
-        public JobProviderProfileController(IJobProviderProfileRepository repository)
+        public JobProviderProfileController(IJobProviderProfileRepository repository, IEventBus eventBus)
         {
             _repository = repository;
+            _eventBus = eventBus;
         }
 
         [HttpGet]
@@ -63,8 +67,30 @@ namespace JobProviderService.Controllers
             profile.LogoUrl = dto.LogoUrl;
             profile.LinkedInUrl = dto.LinkedInUrl;
             profile.TwitterUrl = dto.TwitterUrl;
+            profile.UpdatedAt = DateTime.UtcNow;
 
             var saved = await _repository.UpsertAsync(profile);
+
+            await _eventBus.PublishAsync(new JobProviderProfileUpsertedEvent
+            {
+                JobProviderId = saved.JobProviderId,
+                CompanyName = saved.CompanyName,
+                BrandName = saved.BrandName,
+                Industry = saved.Industry,
+                CompanySize = saved.CompanySize,
+                Website = saved.Website,
+                Phone = saved.Phone,
+                Location = saved.Location,
+                About = saved.About,
+                LogoUrl = saved.LogoUrl,
+                LinkedInUrl = saved.LinkedInUrl,
+                TwitterUrl = saved.TwitterUrl,
+                ContactName = User.FindFirstValue(ClaimTypes.Name) ?? string.Empty,
+                ContactEmail = User.FindFirstValue("email") ?? string.Empty,
+                CreatedAt = saved.UpdatedAt,
+                UpdatedAt = saved.UpdatedAt
+            });
+
             return Ok(ToDto(saved));
         }
 
