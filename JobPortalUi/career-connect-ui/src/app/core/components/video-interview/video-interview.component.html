@@ -1,0 +1,131 @@
+<div class="interview-container" #interviewRoot>
+  <div class="interview-header">
+    <div>
+      <span class="eyebrow">Video Interview</span>
+      <h2>Record Your Answers</h2>
+      <p class="progress">Question {{ currentQuestionIndex + 1 }} of {{ questions.length }}</p>
+    </div>
+    <div class="integrity-badge" [class.blocked]="isMobileDevice">
+      <i class="bi" [ngClass]="isMobileDevice ? 'bi-shield-x' : 'bi-shield-check'"></i>
+      {{ isMobileDevice ? 'Mobile Not Allowed' : 'Integrity Check' }}
+    </div>
+  </div>
+
+  <div class="interview-content">
+    <div class="question-section">
+      <div class="question-card">
+        <h3>{{ currentQuestion?.question }}</h3>
+        <p *ngIf="currentQuestion?.description" class="description">
+          {{ currentQuestion?.description }}
+        </p>
+        <p class="duration">
+          Expected duration: <strong>{{ currentQuestion?.expectedDuration }}s</strong>
+        </p>
+      </div>
+    </div>
+
+    <div class="video-section">
+      <div class="integrity-panel">
+        <div class="integrity-item" [class.ok]="isCameraReady" [class.warn]="!isCameraReady">
+          <i class="bi" [ngClass]="isCameraReady ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'"></i>
+          <span>Camera connected</span>
+        </div>
+        <div class="integrity-item" [class.ok]="!isMobileDevice" [class.warn]="isMobileDevice">
+          <i class="bi" [ngClass]="!isMobileDevice ? 'bi-check-circle-fill' : 'bi-x-circle-fill'"></i>
+          <span>Desktop only</span>
+        </div>
+        <div class="integrity-item" [class.ok]="isFullscreen" [class.warn]="!isFullscreen">
+          <i class="bi" [ngClass]="isFullscreen ? 'bi-check-circle-fill' : 'bi-arrows-fullscreen'"></i>
+          <span>Fullscreen mode</span>
+        </div>
+        <div class="integrity-item" [class.ok]="isPageVisible" [class.warn]="!isPageVisible">
+          <i class="bi" [ngClass]="isPageVisible ? 'bi-check-circle-fill' : 'bi-eye-slash-fill'"></i>
+          <span>Keep this tab active</span>
+        </div>
+      </div>
+
+      <div class="video-container">
+        <video #videoElement
+               class="video-preview"
+               [muted]="isRecording"
+               autoplay
+               playsinline>
+        </video>
+
+        <div *ngIf="recordedBlob && !isRecording" class="video-recorded">
+          <p class="recorded-label">Recorded</p>
+        </div>
+      </div>
+
+      <div class="recording-controls">
+        <div class="timer" [class.warning]="currentExpectedDuration !== null && recordingTime > currentExpectedDuration * 0.8">
+          {{ formatTime(recordingTime) }}
+        </div>
+
+        <div class="button-group">
+          <button class="btn btn-danger" (click)="startRecording()"
+                  *ngIf="!isRecording && !recordedBlob"
+                  [disabled]="isCameraLoading || !canAttemptRecording">
+            {{ isCameraLoading ? 'Loading Camera...' : 'Record' }}
+          </button>
+
+          <button class="btn btn-warning" (click)="stopRecording()"
+                  *ngIf="isRecording">
+            Stop
+          </button>
+
+          <button class="btn btn-secondary" (click)="retakeVideo()"
+                  *ngIf="recordedBlob && !isRecording">
+            Retake
+          </button>
+        </div>
+      </div>
+
+      <div class="upload-alternative">
+        <p>Or upload a video file:</p>
+        <input type="file" #fileInput (change)="onFileSelected($event)"
+               accept="video/*" style="display: none">
+        <button class="btn btn-secondary btn-small" (click)="fileInput.click()">
+          Choose File
+        </button>
+      </div>
+
+      <div class="integrity-warning" *ngIf="integrityWarnings.length > 0">
+        <i class="bi bi-exclamation-diamond"></i>
+        <div>
+          <strong>Integrity alert</strong>
+          <p>{{ integrityWarnings[integrityWarnings.length - 1] }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="interview-footer">
+    <button class="btn btn-secondary" (click)="goToPreviousQuestion()"
+            [disabled]="currentQuestionIndex === 0 || !recordedBlob">
+      Previous
+    </button>
+
+    <div class="question-status">
+      <span *ngFor="let q of questions; let i = index"
+            class="status-dot"
+            [class.answered]="answeredQuestions.has(i)"
+            [class.current]="i === currentQuestionIndex"
+            (click)="goToQuestion(i)"
+            [title]="'Question ' + (i + 1)">
+      </span>
+    </div>
+
+    <button class="btn btn-primary" (click)="goToNextQuestion()"
+            *ngIf="currentQuestionIndex < questions.length - 1"
+            [disabled]="!recordedBlob">
+      Next
+    </button>
+
+    <button class="btn btn-success" (click)="submitInterview()"
+            *ngIf="currentQuestionIndex === questions.length - 1"
+            [disabled]="!allQuestionsAnswered || isSubmitting">
+      {{ isSubmitting ? 'Submitting...' : 'Submit Interview' }}
+    </button>
+  </div>
+</div>

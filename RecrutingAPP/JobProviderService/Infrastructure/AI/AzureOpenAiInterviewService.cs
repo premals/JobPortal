@@ -1,13 +1,15 @@
-using System.Net.Http.Headers;
-using System.Text;
 using System.Text.Json;
 using System.Linq;
 using JobProviderService.Application.Interfaces;
 using JobProviderService.Domain;
 using JobProviderService.DTO;
 using Microsoft.Extensions.Options;
+using Azure;
+using Azure.AI.OpenAI;
 using Azure.Core;
 using Azure.Identity;
+using OpenAI.Chat;
+using System.ClientModel;
 
 namespace JobProviderService.Infrastructure.AI
 {
@@ -22,7 +24,7 @@ namespace JobProviderService.Infrastructure.AI
         {
             _http = http;
             _options = options.Value;
-            _useEntraAuth = string.Equals(_options.AuthMode, "EntraId", StringComparison.OrdinalIgnoreCase);
+            _useEntraAuth = UsesEntraAuth(_options.AuthMode);
             if (_useEntraAuth)
             {
                 _credential = CreateCredential(_options);
@@ -130,73 +132,71 @@ Transcript:
 
         private async Task<string> SendPromptAsync(string label, string prompt, AiRuntimeConfig? config)
         {
-            var url = BuildUrl(config);
-
-            using var request = new HttpRequestMessage(HttpMethod.Post, url);
-            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            await AddAuthHeaderAsync(request);
-
-            var payload = new
+            try
             {
-                messages = new[]
+                var chatClient = CreateChatClient(config);
+                var messages = new ChatMessage[]
                 {
-                    new { role = "system", content = "Return valid JSON only. No markdown." },
-                    new { role = "user", content = prompt }
-                },
-                temperature = 0.2,
-                max_tokens = 800
-            };
+                    new SystemChatMessage("Return valid JSON only. No markdown."),
+                    new UserChatMessage(prompt)
+                };
 
-            request.Content = new StringContent(
-                JsonSerializer.Serialize(payload),
-                Encoding.UTF8,
-                "application/json");
+                ChatCompletion completion = await chatClient.CompleteChatAsync(messages);
+                var text = ExtractContentText(completion);
+                if (string.IsNullOrWhiteSpace(text))
+                {
+                    throw new InvalidOperationException("Azure OpenAI returned empty content.");
+                }
 
-            var response = await _http.SendAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
+                return text;
+            }
+            catch (RequestFailedException ex)
             {
                 throw new HttpRequestException(
-                    $"Azure OpenAI call failed ({(int)response.StatusCode}): {content}");
+                    $"Azure OpenAI call failed ({ex.Status}): {ex.Message}", ex);
             }
-
-            return ExtractText(content);
         }
 
-        private string BuildUrl(AiRuntimeConfig? config)
+        private ChatClient CreateChatClient(AiRuntimeConfig? config)
         {
-            var endpoint = (config?.Endpoint ?? _options.Endpoint).TrimEnd('/');
-            var deployment = config?.Deployment ?? _options.Deployment;
+            var endpoint = ResolveEndpoint(config);
+            var deployment = FirstNonEmpty(config?.Deployment, _options.Deployment);
             if (string.IsNullOrWhiteSpace(deployment))
                 throw new InvalidOperationException("Azure OpenAI deployment name is required.");
 
-            var apiVersion = config?.ApiVersion ?? _options.ApiVersion;
-            return $"{endpoint}/openai/deployments/{deployment}/chat/completions?api-version={apiVersion}";
-        }
+            var clientOptions = BuildClientOptions(config);
+            var uri = new Uri(endpoint);
 
-        private async Task AddAuthHeaderAsync(HttpRequestMessage request)
-        {
-            if (string.Equals(_options.AuthMode, "ApiKey", StringComparison.OrdinalIgnoreCase))
+            AzureOpenAIClient azureClient;
+            if (IsApiKeyAuth(_options.AuthMode))
             {
                 if (string.IsNullOrWhiteSpace(_options.ApiKey))
                     throw new InvalidOperationException("ApiKey auth selected but AzureOpenAI:ApiKey is missing.");
 
-                request.Headers.Add("api-key", _options.ApiKey);
-                return;
+                azureClient = new AzureOpenAIClient(uri, new ApiKeyCredential(_options.ApiKey), clientOptions);
+            }
+            else
+            {
+                var credential = _credential ?? CreateCredential(_options);
+                azureClient = new AzureOpenAIClient(uri, credential, clientOptions);
             }
 
-            if (!_useEntraAuth || _credential == null)
-                throw new InvalidOperationException("Entra ID auth selected but no credential could be created.");
+            return azureClient.GetChatClient(deployment);
+        }
 
-            var scope = string.IsNullOrWhiteSpace(_options.TokenScope)
-                ? "https://cognitiveservices.azure.com/.default"
-                : _options.TokenScope;
+        private static string ExtractContentText(ChatCompletion completion)
+        {
+            if (completion.Content == null || completion.Content.Count == 0)
+            {
+                return string.Empty;
+            }
 
-            var token = await _credential.GetTokenAsync(
-                new TokenRequestContext(new[] { scope }),
-                CancellationToken.None);
+            if (completion.Content.Count == 1)
+            {
+                return completion.Content[0].Text ?? string.Empty;
+            }
 
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+            return string.Concat(completion.Content.Select(part => part.Text));
         }
 
         private static TokenCredential CreateCredential(AzureOpenAiOptions options)
@@ -213,7 +213,98 @@ Transcript:
                 return new ManagedIdentityCredential(options.ManagedIdentityClientId);
             }
 
-            return new DefaultAzureCredential();
+            var credentialOptions = new DefaultAzureCredentialOptions();
+            if (!string.IsNullOrWhiteSpace(options.TenantId))
+            {
+                credentialOptions.TenantId = options.TenantId;
+                credentialOptions.AdditionallyAllowedTenants.Add(options.TenantId);
+                credentialOptions.AdditionallyAllowedTenants.Add("*");
+                credentialOptions.InteractiveBrowserTenantId = options.TenantId;
+                credentialOptions.SharedTokenCacheTenantId = options.TenantId;
+                credentialOptions.VisualStudioTenantId = options.TenantId;
+                credentialOptions.VisualStudioCodeTenantId = options.TenantId;
+            }
+
+            return new DefaultAzureCredential(credentialOptions);
+        }
+
+        private static bool IsApiKeyAuth(string? authMode)
+        {
+            return string.Equals(authMode, "ApiKey", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool UsesEntraAuth(string? authMode)
+        {
+            return string.Equals(authMode, "EntraId", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(authMode, "DefaultCredential", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(authMode, "DefaultAzureCredential", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(authMode, "ManagedIdentity", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private string ResolveEndpoint(AiRuntimeConfig? config)
+        {
+            var configured = config?.Endpoint?.Trim();
+            if (string.IsNullOrWhiteSpace(configured))
+                return _options.Endpoint.TrimEnd('/');
+
+            // When using Entra ID auth locally, prefer the app-configured OpenAI endpoint
+            // to avoid hitting a different Azure AI Services resource without permissions.
+            if (_useEntraAuth && !EndpointsMatch(configured, _options.Endpoint))
+                return _options.Endpoint.TrimEnd('/');
+
+            return configured.TrimEnd('/');
+        }
+
+        private static bool EndpointsMatch(string left, string right)
+        {
+            return string.Equals(NormalizeEndpoint(left), NormalizeEndpoint(right), StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string NormalizeEndpoint(string endpoint)
+        {
+            return endpoint.Trim().TrimEnd('/');
+        }
+
+        private static string FirstNonEmpty(string? primary, string? fallback)
+        {
+            return !string.IsNullOrWhiteSpace(primary)
+                ? primary
+                : (fallback ?? string.Empty);
+        }
+
+        private AzureOpenAIClientOptions BuildClientOptions(AiRuntimeConfig? config)
+        {
+            var apiVersion = FirstNonEmpty(config?.ApiVersion, _options.ApiVersion);
+            if (TryMapServiceVersion(apiVersion, out var version))
+            {
+                return new AzureOpenAIClientOptions(version);
+            }
+
+            return new AzureOpenAIClientOptions();
+        }
+
+        private static bool TryMapServiceVersion(string? apiVersion, out AzureOpenAIClientOptions.ServiceVersion version)
+        {
+            version = default;
+            if (string.IsNullOrWhiteSpace(apiVersion))
+                return false;
+
+            var enumName = ToServiceVersionEnumName(apiVersion);
+            return Enum.TryParse(enumName, ignoreCase: false, out version);
+        }
+
+        private static string ToServiceVersionEnumName(string apiVersion)
+        {
+            var normalized = apiVersion.Trim().ToLowerInvariant();
+            if (normalized.EndsWith("-preview", StringComparison.Ordinal))
+            {
+                normalized = normalized[..^("-preview".Length)];
+                normalized = normalized.Replace("-", "_", StringComparison.Ordinal);
+                return $"V{normalized}_Preview";
+            }
+
+            normalized = normalized.Replace("-", "_", StringComparison.Ordinal);
+            return $"V{normalized}";
         }
 
         private static string ExtractText(string json)

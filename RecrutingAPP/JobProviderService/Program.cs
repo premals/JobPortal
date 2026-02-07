@@ -12,14 +12,29 @@ using JobProviderService.Infrastructure.Messaging.Azure;
 using JobProviderService.Infrastructure.Messaging.RabbitMQ;
 using JobProviderService.Infrastructure.Repository;
 using JobProviderService.Infrastructure.Services;
+using JobProviderService.Logging;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using MongoDB.Driver;
+using NLog;
+using NLog.Config;
+using NLog.Web;
 using System.Text;
+using System.Diagnostics;
+
+LogManager.Setup().SetupExtensions(ext =>
+    ext.RegisterTarget<AzureLogAnalyticsTarget>("AzureLogAnalytics"));
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Logging.ClearProviders();
+builder.Host.UseNLog();
+
+Directory.CreateDirectory(Path.Combine(builder.Environment.ContentRootPath, "logs"));
 
 // =======================
 // MongoDB Configuration
@@ -73,10 +88,12 @@ builder.Services.AddHttpClient<IAiInterviewService, AzureOpenAiInterviewService>
 // Messaging Configuration
 // -----------------------------
 var messagingProvider = builder.Configuration["Messaging:Provider"];
+var bootstrapLogger = LogManager.GetCurrentClassLogger();
 
 if (messagingProvider == "RabbitMQ")
 {
     builder.Services.AddSingleton<IEventBus, RabbitMqEventBus>();
+    builder.Services.AddHostedService<JobApplicationConsumer>();
 }
 else if (messagingProvider == "AzureServiceBus")
 {
@@ -86,20 +103,12 @@ else if (messagingProvider == "AzureServiceBus")
         ));
 
     builder.Services.AddSingleton<IEventBus, AzureServiceBusEventBus>();
-}
-else
-{
-    throw new InvalidOperationException(
-        $"Unsupported Messaging Provider: {messagingProvider}");
-}
-
-if (builder.Configuration["Messaging:Provider"] == "RabbitMQ")
-{
-    builder.Services.AddHostedService<JobApplicationConsumer>();
-}
-else
-{
     builder.Services.AddHostedService<JobApplicationServiceBusConsumer>();
+}
+else
+{
+    bootstrapLogger.Error("Unsupported Messaging Provider: {Provider}. Messaging is disabled.", messagingProvider);
+    builder.Services.AddSingleton<IEventBus, NoOpEventBus>();
 }
 
 
@@ -126,7 +135,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     {
         OnAuthenticationFailed = context =>
         {
-            Console.WriteLine(context.Exception.Message);
+            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+            logger.LogWarning(context.Exception, "JWT authentication failed.");
             return Task.CompletedTask;
         }
     };
@@ -164,6 +174,66 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        var feature = context.Features.Get<IExceptionHandlerPathFeature>();
+        var exception = feature?.Error;
+        var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+        if (exception != null)
+        {
+            logger.LogError(exception, "Unhandled exception for {Path}", feature?.Path);
+        }
+
+        var statusCode = exception switch
+        {
+            ArgumentException => StatusCodes.Status400BadRequest,
+            ApplicationException => StatusCodes.Status400BadRequest,
+            UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
+            _ => StatusCodes.Status500InternalServerError
+        };
+
+        if (exception is InvalidOperationException invalidOp &&
+            invalidOp.Message.Contains("not found", StringComparison.OrdinalIgnoreCase))
+        {
+            statusCode = StatusCodes.Status404NotFound;
+        }
+
+        context.Response.StatusCode = statusCode;
+        context.Response.ContentType = "application/problem+json";
+
+        var title = statusCode switch
+        {
+            StatusCodes.Status400BadRequest => "Bad Request",
+            StatusCodes.Status401Unauthorized => "Unauthorized",
+            StatusCodes.Status404NotFound => "Not Found",
+            _ => "Internal Server Error"
+        };
+
+        var detail = statusCode == StatusCodes.Status500InternalServerError
+            ? "An unexpected error occurred."
+            : exception?.Message ?? title;
+
+        await context.Response.WriteAsJsonAsync(new ProblemDetails
+        {
+            Status = statusCode,
+            Title = title,
+            Detail = detail
+        });
+    });
+});
+
+app.Use(async (context, next) =>
+{
+    var traceId = Activity.Current?.TraceId.ToString() ?? context.TraceIdentifier;
+    using (MappedDiagnosticsLogicalContext.SetScoped("traceId", traceId))
+    using (MappedDiagnosticsLogicalContext.SetScoped("requestId", context.TraceIdentifier))
+    {
+        await next();
+    }
+});
 
 using (var scope = app.Services.CreateScope())
 {

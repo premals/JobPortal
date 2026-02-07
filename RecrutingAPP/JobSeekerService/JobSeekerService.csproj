@@ -9,6 +9,7 @@
   <ItemGroup>
 	  <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.20.1" />
 	  <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.8" />
+	  <PackageReference Include="NLog.Web.AspNetCore" Version="6.1.1" />
 
 	  <!-- MongoDB -->
 	  <PackageReference Include="MongoDB.Driver" Version="2.25.0" />
@@ -23,6 +24,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Shared.Contracts\Shared.Contracts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="NLog.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

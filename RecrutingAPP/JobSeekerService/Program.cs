@@ -7,14 +7,29 @@ using JobSeekerService.Infrastructure.Messaging.AzureServiceBus;
 using JobSeekerService.Infrastructure.Messaging.RabbitMq;
 using JobSeekerService.Infrastructure.Mongo;
 using JobSeekerService.Infrastructure.Mongo.Indexes;
+using JobSeekerService.Logging;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using MongoDB.Driver;
+using NLog;
+using NLog.Config;
+using NLog.Web;
+using System.Diagnostics;
 using System.Security.Claims;
 using System.Text;
 
+LogManager.Setup().SetupExtensions(ext =>
+    ext.RegisterTarget<AzureLogAnalyticsTarget>("AzureLogAnalytics"));
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Logging.ClearProviders();
+builder.Host.UseNLog();
+
+Directory.CreateDirectory(Path.Combine(builder.Environment.ContentRootPath, "logs"));
 
 // ================================
 // MongoDB Configuration
@@ -100,33 +115,34 @@ builder.Services.AddAuthorization(options =>
 });
 
 
-if (builder.Configuration["Messaging:Provider"] == "RabbitMQ")
+var messagingProvider = builder.Configuration["Messaging:Provider"];
+var bootstrapLogger = LogManager.GetCurrentClassLogger();
+
+if (messagingProvider == "RabbitMQ")
 {
     builder.Services.AddHostedService<JobEventsRabbitConsumer>();
-}
-else
-{
-    builder.Services.AddHostedService<JobEventsServiceBusConsumer>();
-}
-
-if (builder.Configuration["Messaging:Provider"] == "RabbitMQ")
-{
     builder.Services.AddSingleton<IEventBus, RabbitMqEventBus>();
 }
+else if (messagingProvider == "AzureServiceBus")
+{
+    builder.Services.AddHostedService<JobEventsServiceBusConsumer>();
+    builder.Services.AddSingleton<IEventBus, AzureServiceBusEventBus>();
+}
 else
 {
-    builder.Services.AddSingleton<IEventBus, AzureServiceBusEventBus>();
+    bootstrapLogger.Error("Unsupported Messaging Provider: {Provider}. Messaging is disabled.", messagingProvider);
+    builder.Services.AddSingleton<IEventBus, NoOpEventBus>();
 }
 
 builder.Services.AddScoped<JobSeekerRegisteredEventHandler>();
 builder.Services.AddScoped<JobApplicationStatusUpdatedEventHandler>();
 builder.Services.AddScoped<InterviewInviteCreatedEventHandler>();
 
-if (builder.Configuration["Messaging:Provider"] == "RabbitMQ")
+if (messagingProvider == "RabbitMQ")
 {
     builder.Services.AddHostedService<JobSeekerRegisteredConsumer>();
 }
-else
+else if (messagingProvider == "AzureServiceBus")
 {
     builder.Services.AddHostedService<JobSeekerRegisteredServiceBusConsumer>();
 }
@@ -139,6 +155,67 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        var feature = context.Features.Get<IExceptionHandlerPathFeature>();
+        var exception = feature?.Error;
+        var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+        if (exception != null)
+        {
+            logger.LogError(exception, "Unhandled exception for {Path}", feature?.Path);
+        }
+
+        var statusCode = exception switch
+        {
+            ArgumentException => StatusCodes.Status400BadRequest,
+            ApplicationException => StatusCodes.Status400BadRequest,
+            UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
+            _ => StatusCodes.Status500InternalServerError
+        };
+
+        if (exception is InvalidOperationException invalidOp &&
+            invalidOp.Message.Contains("not found", StringComparison.OrdinalIgnoreCase))
+        {
+            statusCode = StatusCodes.Status404NotFound;
+        }
+
+        context.Response.StatusCode = statusCode;
+        context.Response.ContentType = "application/problem+json";
+
+        var title = statusCode switch
+        {
+            StatusCodes.Status400BadRequest => "Bad Request",
+            StatusCodes.Status401Unauthorized => "Unauthorized",
+            StatusCodes.Status404NotFound => "Not Found",
+            _ => "Internal Server Error"
+        };
+
+        var detail = statusCode == StatusCodes.Status500InternalServerError
+            ? "An unexpected error occurred."
+            : exception?.Message ?? title;
+
+        await context.Response.WriteAsJsonAsync(new ProblemDetails
+        {
+            Status = statusCode,
+            Title = title,
+            Detail = detail
+        });
+    });
+});
+
+app.Use(async (context, next) =>
+{
+    var traceId = Activity.Current?.TraceId.ToString() ?? context.TraceIdentifier;
+    using (MappedDiagnosticsLogicalContext.SetScoped("traceId", traceId))
+    using (MappedDiagnosticsLogicalContext.SetScoped("requestId", context.TraceIdentifier))
+    {
+        await next();
+    }
+});
+
 using (var scope = app.Services.CreateScope())
 {
     var database = scope.ServiceProvider.GetRequiredService<IMongoDatabase>();
