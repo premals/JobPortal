@@ -1,0 +1,45 @@
+﻿trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - RecrutingAPP/JobProviderService/**
+      - RecrutingAPP/Shared.Contracts/**
+
+pr:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - RecrutingAPP/JobProviderService/**
+      - RecrutingAPP/Shared.Contracts/**
+
+variables:
+  dockerRegistryServiceConnection: '<YOUR_ACR_SERVICE_CONNECTION>'
+  imageRepository: 'jobportal/jobprovider'
+  dockerfilePath: 'RecrutingAPP/JobProviderService/Dockerfile'
+  buildContext: 'RecrutingAPP'
+  tag: '$(Build.BuildId)'
+
+stages:
+- stage: BuildAndPush
+  displayName: Build and Push Job Provider Service
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: Docker@2
+      displayName: Build and push image
+      inputs:
+        containerRegistry: $(dockerRegistryServiceConnection)
+        repository: $(imageRepository)
+        command: buildAndPush
+        Dockerfile: $(dockerfilePath)
+        buildContext: $(buildContext)
+        tags: |
+          $(tag)
+          latest

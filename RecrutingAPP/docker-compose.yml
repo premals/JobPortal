@@ -1,0 +1,92 @@
+﻿version: "3.9"
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: jobportal-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: jobportal-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  identity-service:
+    build:
+      context: .
+      dockerfile: IdendityService/IdendityService/Dockerfile
+    ports:
+      - "5198:8080"
+    environment:
+      ASPNETCORE_URLS: "http://+:8080"
+      MongoSettings__ConnectionString: "mongodb://mongo:27017"
+      MongoSettings__DatabaseName: "AuthDb"
+      Messaging__Provider: "RabbitMQ"
+      Messaging__RabbitMQ__Host: "rabbitmq"
+      Messaging__RabbitMQ__Port: "5672"
+      Messaging__RabbitMQ__UserName: "guest"
+      Messaging__RabbitMQ__Password: "guest"
+    depends_on:
+      - mongo
+      - rabbitmq
+
+  job-provider-service:
+    build:
+      context: .
+      dockerfile: JobProviderService/Dockerfile
+    ports:
+      - "5133:8080"
+    environment:
+      ASPNETCORE_URLS: "http://+:8080"
+      Mongo__ConnectionString: "mongodb://mongo:27017"
+      Mongo__Database: "JobProviderDb"
+      Messaging__Provider: "RabbitMQ"
+      Messaging__RabbitMQ__Host: "rabbitmq"
+      Messaging__RabbitMQ__Port: "5672"
+      Messaging__RabbitMQ__UserName: "guest"
+      Messaging__RabbitMQ__Password: "guest"
+    depends_on:
+      - mongo
+      - rabbitmq
+
+  job-seeker-service:
+    build:
+      context: .
+      dockerfile: JobSeekerService/Dockerfile
+    ports:
+      - "5025:8080"
+    environment:
+      ASPNETCORE_URLS: "http://+:8080"
+      Mongo__ConnectionString: "mongodb://mongo:27017"
+      Mongo__Database: "JobSeekerDb"
+      Messaging__Provider: "RabbitMQ"
+      Messaging__RabbitMQ__Host: "rabbitmq"
+      Messaging__RabbitMQ__Port: "5672"
+      Messaging__RabbitMQ__UserName: "guest"
+      Messaging__RabbitMQ__Password: "guest"
+    depends_on:
+      - mongo
+      - rabbitmq
+
+  gateway:
+    build:
+      context: .
+      dockerfile: Gateway/Dockerfile
+    ports:
+      - "5000:8080"
+    environment:
+      ASPNETCORE_URLS: "http://+:8080"
+    depends_on:
+      - identity-service
+      - job-provider-service
+      - job-seeker-service
+    volumes:
+      - ./Gateway/ocelot.docker.json:/app/ocelot.json:ro
+
+volumes:
+  mongo-data:
