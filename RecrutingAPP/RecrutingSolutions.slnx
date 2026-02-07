@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="./AdminService/AdminService.csproj" />
   <Project Path="./Gateway/Gateway.csproj" />
   <Project Path="./IdendityService/IdendityService/IdendityService.csproj" />
   <Project Path="./JobProviderService/JobProviderService.csproj" />

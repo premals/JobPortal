@@ -1,4 +1,4 @@
-﻿version: "3.9"
+version: "3.9"
 
 services:
   mongo:
@@ -73,6 +73,32 @@ services:
       - mongo
       - rabbitmq
 
+  admin-service:
+    build:
+      context: .
+      dockerfile: AdminService/Dockerfile
+    ports:
+      - "5400:8080"
+    environment:
+      ASPNETCORE_URLS: "http://+:8080"
+      Mongo__ConnectionString: "mongodb://mongo:27017"
+      Mongo__DatabaseName: "AdminDb"
+      Sync__Enabled: "true"
+      Sync__RunOnStartup: "true"
+      Sync__IntervalMinutes: "30"
+      Sync__JobSeeker__ConnectionString: "mongodb://mongo:27017"
+      Sync__JobSeeker__DatabaseName: "JobSeekerDb"
+      Sync__JobProvider__ConnectionString: "mongodb://mongo:27017"
+      Sync__JobProvider__DatabaseName: "JobProviderDb"
+      Messaging__Provider: "RabbitMQ"
+      Messaging__RabbitMQ__Host: "rabbitmq"
+      Messaging__RabbitMQ__Port: "5672"
+      Messaging__RabbitMQ__UserName: "guest"
+      Messaging__RabbitMQ__Password: "guest"
+    depends_on:
+      - mongo
+      - rabbitmq
+
   gateway:
     build:
       context: .
@@ -85,6 +111,7 @@ services:
       - identity-service
       - job-provider-service
       - job-seeker-service
+      - admin-service
     volumes:
       - ./Gateway/ocelot.docker.json:/app/ocelot.json:ro
 
