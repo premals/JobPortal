@@ -1,1 +1,220 @@
-<p>ai-resume works!</p>
+<section class="resume-ai">
+  <div class="hero">
+    <div class="hero-text">
+      <p class="eyebrow">AI Resume Studio</p>
+      <h1>Turn your resume into a polished, recruiter-ready story.</h1>
+      <p class="hero-sub">
+        Upload, parse, and preview professional templates tailored to your experience.
+      </p>
+      <div class="hero-actions">
+        <button class="ai-btn primary" (click)="useProfileData()">
+          <i class="bi bi-stars"></i>
+          Use Profile Data
+        </button>
+        <button class="ai-btn ghost" (click)="saveDraft(true)" [disabled]="isSavingDraft">
+          <i class="bi bi-cloud-check"></i>
+          {{ isSavingDraft ? 'Saving...' : 'Save Draft' }}
+        </button>
+        <button class="ai-btn ghost" (click)="clearInputs()">
+          <i class="bi bi-eraser"></i>
+          Clear Input
+        </button>
+      </div>
+    </div>
+    <div class="hero-card">
+      <div class="hero-metric">
+        <span class="metric-label">Templates</span>
+        <span class="metric-value">{{ templates.length }}</span>
+      </div>
+      <div class="hero-metric">
+        <span class="metric-label">Sections</span>
+        <span class="metric-value">6+</span>
+      </div>
+      <div class="hero-pill">ATS-ready layouts</div>
+    </div>
+  </div>
+
+  <div class="resume-shell">
+    <div class="controls">
+      <div class="card">
+        <div class="card-head">
+          <h3>Bring your resume</h3>
+          <p>Upload a file or paste text to extract key details.</p>
+        </div>
+        <label class="file-drop">
+          <input type="file" accept=".pdf,.doc,.docx,.txt" (change)="onFileSelected($event)">
+          <span class="file-icon">
+            <i class="bi bi-upload"></i>
+          </span>
+          <div class="file-copy">
+            <strong>Drop a file</strong>
+            <span>PDF, DOCX, or TXT</span>
+          </div>
+        </label>
+        <div class="divider">or paste resume text</div>
+        <textarea class="input textarea" rows="6" [(ngModel)]="resumeText"
+                  placeholder="Paste resume content here..."></textarea>
+        <div class="action-row">
+          <button class="ai-btn primary" (click)="parseResumeText()" [disabled]="isParsing || !resumeText.trim()">
+            <i class="bi bi-magic"></i>
+            {{ isParsing ? 'Parsing...' : 'Parse Resume' }}
+          </button>
+          <button class="ai-btn subtle" (click)="clearInputs()">
+            <i class="bi bi-trash3"></i>
+            Clear
+          </button>
+        </div>
+        <p class="error" *ngIf="parseError">{{ parseError }}</p>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h3>Quick edits</h3>
+          <p>Fine-tune your summary and headline instantly.</p>
+        </div>
+        <div class="form-grid">
+          <label>Full name</label>
+          <input class="input" [(ngModel)]="draft.fullName" placeholder="Full name">
+          <label>Headline</label>
+          <input class="input" [(ngModel)]="draft.headline" placeholder="Role or specialty">
+          <label>Email</label>
+          <input class="input" [(ngModel)]="draft.email" placeholder="Email address">
+          <label>Phone</label>
+          <input class="input" [(ngModel)]="draft.phone" placeholder="Phone number">
+          <label>Location</label>
+          <input class="input" [(ngModel)]="draft.location" placeholder="City, Country">
+        </div>
+        <label class="toggle-row">
+          <input type="checkbox" [(ngModel)]="draft.atsFriendly" (change)="saveDraft()">
+          <span>ATS-friendly layout</span>
+        </label>
+        <label class="stack-label">Summary</label>
+        <textarea class="input textarea" rows="4" [(ngModel)]="draft.summary"
+                  placeholder="Write a crisp professional summary..."></textarea>
+        <div class="skills-input">
+          <input class="input" [(ngModel)]="skillDraft" (keydown.enter)="addSkillFromInput($event)"
+                 placeholder="Add a skill and press Enter">
+          <button class="ai-btn subtle" (click)="addSkill()">
+            <i class="bi bi-plus"></i>
+            Add
+          </button>
+        </div>
+        <div class="skill-chips">
+          <span class="chip" *ngFor="let skill of draft.skills; let i = index">
+            {{ skill }}
+            <button type="button" (click)="removeSkill(i)">&times;</button>
+          </span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h3>Templates</h3>
+          <p>Pick a layout that matches your role and personality.</p>
+        </div>
+        <div class="template-grid">
+          <button class="template-card"
+                  *ngFor="let template of templates"
+                  [class.active]="template.id === selectedTemplate"
+                  (click)="selectTemplate(template.id)">
+            <div class="template-swatch" [style.background]="template.gradient"></div>
+            <div class="template-meta">
+              <div class="template-title">{{ template.name }}</div>
+              <div class="template-desc">{{ template.description }}</div>
+            </div>
+            <span class="template-badge" *ngIf="template.recommended">Recommended</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="preview-panel">
+      <div class="preview-head">
+        <div>
+          <h3>Live Preview</h3>
+          <p>Updates instantly as you edit.</p>
+        </div>
+        <div class="preview-actions">
+          <button class="ai-btn ghost" (click)="downloadResume()" [disabled]="isGeneratingPdf">
+            <i class="bi bi-download"></i>
+            {{ isGeneratingPdf ? 'Generating...' : 'Download' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="resume-preview" [ngClass]="selectedTemplate">
+        <ng-container *ngIf="hasContent; else emptyState">
+          <div class="preview-header">
+            <div>
+              <h2>{{ draft.fullName || 'Your Name' }}</h2>
+              <p class="headline">{{ draft.headline || 'Your headline goes here' }}</p>
+            </div>
+            <div class="contact">
+              <span *ngFor="let item of contactItems">{{ item }}</span>
+            </div>
+          </div>
+
+          <div class="preview-body">
+            <section class="section summary">
+              <h4>Summary</h4>
+              <p>{{ draft.summary || 'Add a short professional summary to highlight your strengths.' }}</p>
+            </section>
+
+            <section class="section skills">
+              <h4>Skills</h4>
+              <div class="skills-grid">
+                <span class="skill-pill"
+                      *ngFor="let skill of (draft.skills.length ? draft.skills : ['Add skills to showcase your toolkit'])">
+                  {{ skill }}
+                </span>
+              </div>
+            </section>
+
+            <section class="section experience" *ngIf="draft.workHistory.length > 0">
+              <h4>Experience</h4>
+              <div class="timeline">
+                <div class="timeline-item" *ngFor="let work of draft.workHistory">
+                  <div class="timeline-title">{{ work.role }} &middot; {{ work.company }}</div>
+                  <div class="timeline-meta">{{ formatDateRange(work.startDate, work.endDate) }}</div>
+                  <p>{{ work.description }}</p>
+                  <div class="tag-list" *ngIf="work.skills?.length">
+                    <span class="tag" *ngFor="let tag of work.skills">{{ tag }}</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="section education" *ngIf="draft.educationHistory.length > 0">
+              <h4>Education</h4>
+              <div class="list">
+                <div class="list-item" *ngFor="let edu of draft.educationHistory">
+                  <div class="list-title">{{ edu.degree }} &middot; {{ edu.field }}</div>
+                  <div class="list-meta">{{ edu.school }} &bull; {{ edu.graduationYear }}</div>
+                </div>
+              </div>
+            </section>
+
+            <section class="section projects" *ngIf="draft.projects.length > 0">
+              <h4>Projects</h4>
+              <div class="list">
+                <div class="list-item" *ngFor="let project of draft.projects">
+                  <div class="list-title">{{ project.name }}</div>
+                  <div class="list-meta">{{ project.role }}</div>
+                  <p>{{ project.description }}</p>
+                </div>
+              </div>
+            </section>
+          </div>
+        </ng-container>
+
+        <ng-template #emptyState>
+          <div class="empty-state">
+            <i class="bi bi-file-earmark-text"></i>
+            <h4>No resume data yet</h4>
+            <p>Upload a resume or use your profile to generate a template.</p>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+</section>

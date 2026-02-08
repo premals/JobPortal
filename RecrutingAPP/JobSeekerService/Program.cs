@@ -2,6 +2,7 @@
 using JobSeekerService.Application.Interfaces;
 using JobSeekerService.Application.UseCases;
 using JobSeekerService.Infrastructure.AI;
+using JobSeekerService.Infrastructure.Resume;
 using JobSeekerService.Infrastructure.Messaging;
 using JobSeekerService.Infrastructure.Messaging.AzureServiceBus;
 using JobSeekerService.Infrastructure.Messaging.RabbitMq;
@@ -64,6 +65,7 @@ builder.Services.AddScoped<IJobReadRepository, JobReadRepository>();
 builder.Services.AddScoped<IJobApplicationRepository, JobApplicationRepository>();
 builder.Services.AddScoped<IJobSeekerRepository, JobSeekerRepository>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+builder.Services.AddScoped<IResumeDraftRepository, ResumeDraftRepository>();
 //builder.Services.AddSingleton<JobReadIndexSeeder>();
 //builder.Services.AddSingleton<JobSeekerIndexSeeder>();
 //builder.Services.AddSingleton<JobApplicationIndexSeeder>();
@@ -75,11 +77,18 @@ builder.Services.AddScoped<BrowseJobsUseCase>();
 builder.Services.AddScoped<GetJobDetailsUseCase>();
 builder.Services.AddScoped<ApplyJobUseCase>();
 builder.Services.AddScoped<GetMyApplicationsUseCase>();
+builder.Services.AddScoped<WithdrawJobApplicationUseCase>();
 builder.Services.AddScoped<GenerateResumeAiUseCase>();
+builder.Services.AddScoped<ParseResumeUseCase>();
+builder.Services.AddScoped<ParseResumeFileUseCase>();
 // ================================
 // AI Services
 // ================================
 builder.Services.AddScoped<IResumeAiService, ResumeAiService>();
+builder.Services.AddScoped<IResumePdfGenerator, ResumePdfGenerator>();
+builder.Services.Configure<OpenAiOptions>(
+    builder.Configuration.GetSection("OpenAI"));
+builder.Services.AddHttpClient<IResumeParserService, ResumeParserService>();
 
 // ================================
 // Authentication (JWT)
@@ -224,6 +233,7 @@ using (var scope = app.Services.CreateScope())
     await new JobSeekerIndexSeeder(database).CreateIndexesAsync();
     await new JobApplicationIndexSeeder(database).CreateIndexesAsync();
     await new NotificationIndexSeeder(database).CreateIndexesAsync();
+    await new ResumeDraftIndexSeeder(database).CreateIndexesAsync();
 }
 
 // ================================

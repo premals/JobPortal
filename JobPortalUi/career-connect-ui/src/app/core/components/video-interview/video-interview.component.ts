@@ -1,8 +1,17 @@
 import { Component, Input, Output, EventEmitter, ViewChild, ElementRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Interview, InterviewQuestion } from '../../models/job-seeker/interview.model';
+import { Interview, InterviewQuestion, InterviewIntegrityEvent, InterviewIntegrityEventType } from '../../models/job-seeker/interview.model';
 import { InterviewService } from '../../services/interview.service';
 import { ToastService } from '../../services/toast.service';
+
+interface CocoDetectedObject {
+  class: string;
+  score: number;
+}
+
+interface CocoModel {
+  detect(input: HTMLVideoElement | HTMLCanvasElement | HTMLImageElement): Promise<CocoDetectedObject[]>;
+}
 
 @Component({
   selector: 'app-video-interview',
@@ -34,18 +43,30 @@ export class VideoInterviewComponent implements OnInit {
   isFullscreen = false;
   isPageVisible = true;
   integrityWarnings: string[] = [];
+  integrityEvents: InterviewIntegrityEvent[] = [];
 
   private mediaRecorder: MediaRecorder | null = null;
   private recordedChunks: Blob[] = [];
   private recordingInterval: any;
   private stream: MediaStream | null = null;
+  private deviceDetectionInterval: any;
+  private deviceDetectionModel: CocoModel | null = null;
+  private deviceDetectionLoading = false;
+  private deviceDetectionInProgress = false;
+  private deviceDetectionRequested = false;
+  private lastDeviceWarningAt = 0;
+  private readonly deviceWarningCooldownMs = 15000;
+  private readonly deviceDetectionIntervalMs = 2000;
+  private readonly deviceConfidenceThreshold = 0.6;
+  private readonly deviceClasses = new Set(['cell phone']);
+  private readonly integrityStorageKeyPrefix = 'interview_integrity_';
   answeredQuestions = new Set<number>();
   private readonly isBrowser = typeof window !== 'undefined' && typeof document !== 'undefined';
   private visibilityHandler = () => {
     if (!this.isBrowser) return;
     this.isPageVisible = document.visibilityState === 'visible';
     if (!this.isPageVisible) {
-      this.raiseIntegrityWarning('Interview paused because the tab is no longer visible.');
+      this.raiseIntegrityWarning('Interview paused because the tab is no longer visible.', 'visibility');
       if (this.isRecording) {
         this.stopRecording();
       }
@@ -54,7 +75,7 @@ export class VideoInterviewComponent implements OnInit {
   private blurHandler = () => {
     if (!this.isBrowser) return;
     this.isPageVisible = false;
-    this.raiseIntegrityWarning('Interview paused because focus left the interview window.');
+    this.raiseIntegrityWarning('Interview paused because focus left the interview window.', 'focus');
     if (this.isRecording) {
       this.stopRecording();
     }
@@ -67,7 +88,7 @@ export class VideoInterviewComponent implements OnInit {
     if (!this.isBrowser) return;
     this.isFullscreen = !!document.fullscreenElement;
     if (!this.isFullscreen && this.isRecording) {
-      this.raiseIntegrityWarning('Recording stopped because fullscreen mode was exited.');
+      this.raiseIntegrityWarning('Recording stopped because fullscreen mode was exited.', 'fullscreen');
       this.stopRecording();
     }
   };
@@ -87,6 +108,8 @@ export class VideoInterviewComponent implements OnInit {
       this.currentQuestion = this.questions[0];
       this.currentExpectedDuration = this.currentQuestion.expectedDuration ?? null;
     }
+    this.integrityEvents = this.loadIntegrityEvents();
+    this.integrityWarnings = this.integrityEvents.map(event => event.message).slice(-5);
     this.isMobileDevice = this.detectMobileDevice();
     if (this.isBrowser) {
       this.isPageVisible = document.visibilityState === 'visible';
@@ -168,6 +191,7 @@ export class VideoInterviewComponent implements OnInit {
     this.mediaRecorder.start();
     this.isRecording = true;
     this.recordingTime = 0;
+    this.startDeviceDetection();
 
     this.recordingInterval = setInterval(() => {
       this.recordingTime++;
@@ -179,6 +203,7 @@ export class VideoInterviewComponent implements OnInit {
       this.mediaRecorder.stop();
       this.isRecording = false;
       clearInterval(this.recordingInterval);
+      this.stopDeviceDetection();
     }
   }
 
@@ -186,6 +211,7 @@ export class VideoInterviewComponent implements OnInit {
     this.recordedBlob = null;
     this.recordingTime = 0;
     this.answeredQuestions.delete(this.currentQuestionIndex);
+    this.stopDeviceDetection();
   }
 
   onFileSelected(event: Event): void {
@@ -217,6 +243,7 @@ export class VideoInterviewComponent implements OnInit {
     this.recordedBlob = null;
     this.recordingTime = 0;
     this.stopRecording();
+    this.stopDeviceDetection();
   }
 
   submitInterview(): void {
@@ -229,9 +256,13 @@ export class VideoInterviewComponent implements OnInit {
     this.interviewService.completeInterview(this.interview.id)
       .subscribe({
         next: (updated) => {
+          const enriched: Interview = {
+            ...updated,
+            integrityEvents: [...this.integrityEvents]
+          };
           this.isSubmitting = false;
           this.toastService.show('Interview submitted successfully!');
-          this.submitted.emit(updated);
+          this.submitted.emit(enriched);
         },
         error: () => {
           this.isSubmitting = false;
@@ -249,6 +280,7 @@ export class VideoInterviewComponent implements OnInit {
 
   ngOnDestroy(): void {
     if (this.recordingInterval) clearInterval(this.recordingInterval);
+    this.stopDeviceDetection();
     if (this.stream) {
       this.stream.getTracks().forEach(track => track.stop());
     }
@@ -282,10 +314,151 @@ export class VideoInterviewComponent implements OnInit {
     }
   }
 
-  private raiseIntegrityWarning(message: string): void {
+  private startDeviceDetection(): void {
+    if (!this.isBrowser || this.deviceDetectionInterval) return;
+    this.deviceDetectionRequested = true;
+    void this.ensureDeviceDetectionModel().then((ready) => {
+      if (!ready || !this.deviceDetectionRequested || !this.isRecording || !this.videoElement?.nativeElement) return;
+      this.deviceDetectionInterval = setInterval(() => {
+        void this.checkForDevices();
+      }, this.deviceDetectionIntervalMs);
+    });
+  }
+
+  private stopDeviceDetection(): void {
+    this.deviceDetectionRequested = false;
+    if (this.deviceDetectionInterval) {
+      clearInterval(this.deviceDetectionInterval);
+      this.deviceDetectionInterval = null;
+    }
+    this.deviceDetectionInProgress = false;
+  }
+
+  private async ensureDeviceDetectionModel(): Promise<boolean> {
+    if (this.deviceDetectionModel) return true;
+    if (this.deviceDetectionLoading) return false;
+    this.deviceDetectionLoading = true;
+
+    try {
+      const tfReady = await this.loadScript(
+        'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.0.0/dist/tf.min.js',
+        'tfjs-lib'
+      );
+      const cocoReady = await this.loadScript(
+        'https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.2/dist/coco-ssd.min.js',
+        'coco-ssd-lib'
+      );
+
+      if (!tfReady || !cocoReady) return false;
+      const tf = (window as any).tf;
+      const cocoSsd = (window as any).cocoSsd;
+      if (!tf || !cocoSsd?.load) return false;
+
+      if (tf.setBackend) {
+        await tf.setBackend('webgl').catch(() => undefined);
+        await tf.ready?.();
+      }
+
+      this.deviceDetectionModel = await cocoSsd.load();
+      return true;
+    } catch (err) {
+      console.error('Device detection model failed to load:', err);
+      return false;
+    } finally {
+      this.deviceDetectionLoading = false;
+    }
+  }
+
+  private async checkForDevices(): Promise<void> {
+    if (!this.deviceDetectionModel || this.deviceDetectionInProgress) return;
+    const video = this.videoElement?.nativeElement;
+    if (!video || video.readyState < 2) return;
+
+    this.deviceDetectionInProgress = true;
+    try {
+      const predictions = await this.deviceDetectionModel.detect(video);
+      const suspect = predictions.find(prediction =>
+        this.deviceClasses.has(prediction.class) &&
+        prediction.score >= this.deviceConfidenceThreshold
+      );
+      if (suspect) {
+        this.handleDeviceDetected(suspect.class);
+      }
+    } catch (err) {
+      console.error('Device detection error:', err);
+    } finally {
+      this.deviceDetectionInProgress = false;
+    }
+  }
+
+  private handleDeviceDetected(label: string): void {
+    const now = Date.now();
+    if (now - this.lastDeviceWarningAt < this.deviceWarningCooldownMs) return;
+    this.lastDeviceWarningAt = now;
+    const readable = label === 'cell phone' ? 'mobile phone' : label;
+    const message = `Possible device detected in camera (${readable}). Please remove it.`;
+    this.toastService.show(message);
+    this.raiseIntegrityWarning(message, 'device');
+  }
+
+  private raiseIntegrityWarning(message: string, type: InterviewIntegrityEventType = 'system'): void {
+    const event: InterviewIntegrityEvent = {
+      message,
+      timestamp: new Date().toISOString(),
+      type
+    };
+    this.integrityEvents.push(event);
+    if (this.integrityEvents.length > 50) {
+      this.integrityEvents.shift();
+    }
+    this.persistIntegrityEvents();
     this.integrityWarnings.push(message);
     if (this.integrityWarnings.length > 5) {
       this.integrityWarnings.shift();
     }
+  }
+
+  private loadIntegrityEvents(): InterviewIntegrityEvent[] {
+    if (!this.isBrowser) return [];
+    const key = this.getIntegrityStorageKey();
+    if (!key) return [];
+    try {
+      const raw = localStorage.getItem(key);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private persistIntegrityEvents(): void {
+    if (!this.isBrowser) return;
+    const key = this.getIntegrityStorageKey();
+    if (!key) return;
+    try {
+      localStorage.setItem(key, JSON.stringify(this.integrityEvents.slice(-50)));
+    } catch {
+      // Ignore storage errors
+    }
+  }
+
+  private getIntegrityStorageKey(): string | null {
+    if (!this.interview?.id) return null;
+    return `${this.integrityStorageKeyPrefix}${this.interview.id}`;
+  }
+
+  private loadScript(src: string, id: string): Promise<boolean> {
+    if (!this.isBrowser) return Promise.resolve(false);
+    if (document.getElementById(id)) return Promise.resolve(true);
+
+    return new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.id = id;
+      script.src = src;
+      script.async = true;
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.head.appendChild(script);
+    });
   }
 }

@@ -25,6 +25,7 @@ export interface Interview {
   questions?: InterviewQuestion[];
   responses?: CandidateResponse[];
   analysisReport?: InterviewAnalysis;
+  integrityEvents?: InterviewIntegrityEvent[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -57,6 +58,14 @@ export interface InterviewAnalysis {
   recommendedQuestions?: string[];
   nextSteps?: string;
   generatedAt: Date;
+}
+
+export type InterviewIntegrityEventType = 'device' | 'visibility' | 'focus' | 'fullscreen' | 'system';
+
+export interface InterviewIntegrityEvent {
+  message: string;
+  timestamp: string;
+  type: InterviewIntegrityEventType;
 }
 
 export interface Invitation {

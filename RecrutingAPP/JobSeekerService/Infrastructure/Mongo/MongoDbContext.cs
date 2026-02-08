@@ -25,6 +25,9 @@ namespace JobSeekerService.Infrastructure.Mongo
         public IMongoCollection<Notification> Notifications =>
         _database.GetCollection<Notification>("Notifications");
 
+        public IMongoCollection<ResumeDraft> ResumeDrafts =>
+            _database.GetCollection<ResumeDraft>("ResumeDrafts");
+
         
     }
 }

@@ -66,16 +66,19 @@
           <button class="btn btn-danger" (click)="startRecording()"
                   *ngIf="!isRecording && !recordedBlob"
                   [disabled]="isCameraLoading || !canAttemptRecording">
+            <i class="bi bi-record-circle"></i>
             {{ isCameraLoading ? 'Loading Camera...' : 'Record' }}
           </button>
 
           <button class="btn btn-warning" (click)="stopRecording()"
                   *ngIf="isRecording">
+            <i class="bi bi-stop-circle"></i>
             Stop
           </button>
 
           <button class="btn btn-secondary" (click)="retakeVideo()"
                   *ngIf="recordedBlob && !isRecording">
+            <i class="bi bi-arrow-counterclockwise"></i>
             Retake
           </button>
         </div>
@@ -86,6 +89,7 @@
         <input type="file" #fileInput (change)="onFileSelected($event)"
                accept="video/*" style="display: none">
         <button class="btn btn-secondary btn-small" (click)="fileInput.click()">
+          <i class="bi bi-cloud-arrow-up"></i>
           Choose File
         </button>
       </div>
@@ -103,6 +107,7 @@
   <div class="interview-footer">
     <button class="btn btn-secondary" (click)="goToPreviousQuestion()"
             [disabled]="currentQuestionIndex === 0 || !recordedBlob">
+      <i class="bi bi-arrow-left"></i>
       Previous
     </button>
 
@@ -120,11 +125,13 @@
             *ngIf="currentQuestionIndex < questions.length - 1"
             [disabled]="!recordedBlob">
       Next
+      <i class="bi bi-arrow-right"></i>
     </button>
 
     <button class="btn btn-success" (click)="submitInterview()"
             *ngIf="currentQuestionIndex === questions.length - 1"
             [disabled]="!allQuestionsAnswered || isSubmitting">
+      <i class="bi bi-check2-circle"></i>
       {{ isSubmitting ? 'Submitting...' : 'Submit Interview' }}
     </button>
   </div>
