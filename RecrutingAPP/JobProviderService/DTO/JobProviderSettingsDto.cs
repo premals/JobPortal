@@ -22,7 +22,7 @@ namespace JobProviderService.DTO
         public bool EnableInterviewAi { get; set; } = true;
         public string? Endpoint { get; set; }
         public string? Deployment { get; set; }
-        public string? ApiVersion { get; set; } = "2025-04-01-preview";
+        public string? ApiVersion { get; set; }
         public bool EnableAvatar { get; set; } = false;
         public string? AvatarProvider { get; set; }
     }

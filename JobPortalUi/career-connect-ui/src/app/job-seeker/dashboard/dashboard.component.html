@@ -381,7 +381,8 @@
       </div>
       <app-interview-analysis
         *ngIf="activeAnalysis && !isAnalysisLoading"
-        [analysis]="activeAnalysis">
+        [analysis]="activeAnalysis"
+        [integrityEvents]="activeIntegrityEvents">
       </app-interview-analysis>
     </div>
   </div>

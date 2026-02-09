@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { JobSeekerProfile } from '../../models/job-seeker/job-seeker-profile.model';
+import { ResumeParseResult } from '../../models/job-seeker/resume-parse-result.model';
 import { JobSeekerProfileService } from '../../services/job-seeker-profile.service';
 import { ToastService } from '../../services/toast.service';
 
@@ -153,6 +154,64 @@ import { ToastService } from '../../services/toast.service';
             </div>
 
             <div *ngIf="mode === 'edit'" class="edit-grid">
+              <section class="form-section mode-section">
+                <div class="section-header">
+                  <div>
+                    <h3>Edit Mode</h3>
+                    <p class="muted">Choose how you want to update your profile.</p>
+                  </div>
+                </div>
+                <div class="mode-toggle">
+                  <button
+                    type="button"
+                    class="mode-chip"
+                    [class.active]="editSource === 'manual'"
+                    (click)="setEditSource('manual')">
+                    Manual Edit
+                  </button>
+                  <button
+                    type="button"
+                    class="mode-chip"
+                    [class.active]="editSource === 'import'"
+                    (click)="setEditSource('import')">
+                    Import Resume
+                  </button>
+                </div>
+              </section>
+
+              <section class="form-section import-section" *ngIf="editSource === 'import'">
+                <div class="section-header">
+                  <div>
+                    <h3>Import Resume</h3>
+                    <p class="muted">Upload a text resume or paste content to auto-fill your profile.</p>
+                  </div>
+                </div>
+                <div class="import-grid">
+                  <div class="import-card">
+                    <label class="import-label">Upload Resume (.txt, .md, .pdf, .docx)</label>
+                    <input
+                      type="file"
+                      accept=".txt,.md,.pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
+                      (change)="onResumeFileSelected($event)">
+                    <p class="import-file" *ngIf="resumeFileName">{{ resumeFileName }}</p>
+                    <p class="import-hint">PDF and Word files will be parsed on the server.</p>
+                  </div>
+                  <div class="import-card">
+                    <label class="import-label">Paste Resume Text</label>
+                    <textarea
+                      class="form-control"
+                      rows="6"
+                      [(ngModel)]="resumeText"
+                      placeholder="Paste resume content here..."></textarea>
+                  </div>
+                </div>
+                <div class="import-actions">
+                  <span class="import-error" *ngIf="importError">{{ importError }}</span>
+                  <button type="button" class="btn btn-primary" (click)="applyResumeImport()" [disabled]="isParsingResume">
+                    {{ isParsingResume ? 'Importing...' : 'Auto-fill Profile' }}
+                  </button>
+                </div>
+              </section>
               <section class="form-section">
                 <h3>Personal Information</h3>
                 <div class="form-row">
@@ -547,6 +606,86 @@ import { ToastService } from '../../services/toast.service';
       margin: 0 0 12px;
     }
 
+    .form-section .muted {
+      margin: 4px 0 0;
+      font-size: 0.82rem;
+      color: #64748b;
+    }
+
+    .mode-toggle {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .mode-chip {
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      background: #ffffff;
+      color: #475569;
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .mode-chip.active {
+      background: #0f766e;
+      border-color: #0f766e;
+      color: #ffffff;
+    }
+
+    .import-section {
+      background: #ffffff;
+    }
+
+    .import-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .import-card {
+      border: 1px dashed rgba(148, 163, 184, 0.5);
+      border-radius: 16px;
+      padding: 12px;
+      background: #f8fafc;
+    }
+
+    .import-label {
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: block;
+      color: #0f172a;
+    }
+
+    .import-file {
+      margin: 8px 0 0;
+      font-size: 0.8rem;
+      color: #0f766e;
+    }
+
+    .import-hint {
+      margin: 8px 0 0;
+      font-size: 0.78rem;
+      color: #94a3b8;
+    }
+
+    .import-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .import-error {
+      color: #b91c1c;
+      font-size: 0.8rem;
+    }
+
     .section-header {
       display: flex;
       align-items: center;
@@ -666,6 +805,12 @@ export class ProfileModalComponent implements OnInit {
   profile: JobSeekerProfile = this.getEmptyProfile();
   editProfile: JobSeekerProfile = this.getEmptyProfile();
   skillsInput = '';
+  editSource: 'manual' | 'import' = 'manual';
+  resumeText = '';
+  resumeFileName = '';
+  resumeFile: File | null = null;
+  importError = '';
+  isParsingResume = false;
   isSaving = false;
   isLoading = true;
 
@@ -696,6 +841,87 @@ export class ProfileModalComponent implements OnInit {
 
   editMode(): void {
     this.mode = 'edit';
+    this.editSource = 'manual';
+  }
+
+  setEditSource(source: 'manual' | 'import'): void {
+    this.editSource = source;
+    if (source === 'manual') {
+      this.importError = '';
+    }
+  }
+
+  onResumeFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    const lowerName = file.name.toLowerCase();
+    const isTextType = file.type?.startsWith('text/');
+    const isTextExt = lowerName.endsWith('.txt') || lowerName.endsWith('.md');
+    const isPdf = lowerName.endsWith('.pdf');
+    const isDocx = lowerName.endsWith('.docx');
+
+    if (!isTextType && !isTextExt && !isPdf && !isDocx) {
+      this.importError = 'Please upload a .txt, .md, .pdf, or .docx file.';
+      return;
+    }
+
+    this.resumeFileName = file.name;
+    this.resumeFile = file;
+    this.importError = '';
+
+    if (isTextType || isTextExt) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.resumeText = String(reader.result ?? '');
+      };
+      reader.onerror = () => {
+        this.importError = 'Unable to read the resume file. Please paste the text instead.';
+      };
+      reader.readAsText(file);
+    } else {
+      this.resumeText = '';
+    }
+  }
+
+  applyResumeImport(): void {
+    this.isParsingResume = true;
+    this.importError = '';
+
+    if (this.resumeFile && !this.isTextResume(this.resumeFile)) {
+      this.jobSeekerService.parseResumeFile(this.resumeFile).subscribe({
+        next: (parsed) => {
+          this.mergeImportedProfile(parsed);
+          this.isParsingResume = false;
+          this.toastService.show('Resume imported. Please review the fields.');
+        },
+        error: () => {
+          this.isParsingResume = false;
+          this.importError = 'Unable to parse the resume file. Please try a different file.';
+        }
+      });
+      return;
+    }
+
+    const text = this.resumeText.trim();
+    if (!text) {
+      this.isParsingResume = false;
+      this.importError = 'Paste resume text or upload a resume before importing.';
+      return;
+    }
+
+    this.jobSeekerService.parseResume(text).subscribe({
+      next: (parsed) => {
+        this.mergeImportedProfile(parsed);
+        this.isParsingResume = false;
+        this.toastService.show('Resume imported. Please review the fields.');
+      },
+      error: () => {
+        this.isParsingResume = false;
+        this.importError = 'Unable to parse the resume. Please try again or update manually.';
+      }
+    });
   }
 
   saveProfile(): void {
@@ -785,6 +1011,44 @@ export class ProfileModalComponent implements OnInit {
 
   removeLanguage(index: number): void {
     this.editProfile.languages.splice(index, 1);
+  }
+
+  private isTextResume(file: File): boolean {
+    const lowerName = file.name.toLowerCase();
+    return file.type?.startsWith('text/')
+      || lowerName.endsWith('.txt')
+      || lowerName.endsWith('.md');
+  }
+
+  private mergeImportedProfile(parsed: ResumeParseResult): void {
+    if (parsed.fullName) this.editProfile.fullName = parsed.fullName;
+    if (parsed.email) this.editProfile.email = parsed.email;
+    if (parsed.phone) this.editProfile.phone = parsed.phone;
+    if (parsed.headline) this.editProfile.headline = parsed.headline;
+    if (parsed.summary) this.editProfile.summary = parsed.summary;
+    if (typeof parsed.experienceYears === 'number' && !Number.isNaN(parsed.experienceYears)) {
+      this.editProfile.experienceYears = parsed.experienceYears;
+    }
+    if (parsed.education) this.editProfile.education = parsed.education;
+    if (parsed.skills && parsed.skills.length > 0) {
+      this.editProfile.skills = parsed.skills;
+      this.skillsInput = parsed.skills.join(', ');
+    }
+    if (parsed.workHistory && parsed.workHistory.length > 0) {
+      this.editProfile.workHistory = parsed.workHistory;
+    }
+    if (parsed.educationHistory && parsed.educationHistory.length > 0) {
+      this.editProfile.educationHistory = parsed.educationHistory;
+    }
+    if (parsed.projects && parsed.projects.length > 0) {
+      this.editProfile.projects = parsed.projects;
+    }
+    if (parsed.certifications && parsed.certifications.length > 0) {
+      this.editProfile.certifications = parsed.certifications;
+    }
+    if (parsed.languages && parsed.languages.length > 0) {
+      this.editProfile.languages = parsed.languages;
+    }
   }
 
   private normalizeProfile(profile: JobSeekerProfile): JobSeekerProfile {

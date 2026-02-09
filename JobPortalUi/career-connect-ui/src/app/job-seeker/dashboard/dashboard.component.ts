@@ -12,7 +12,7 @@ import { InvitationModalComponent } from '../../core/components/invitation-modal
 import { VideoInterviewComponent } from '../../core/components/video-interview/video-interview.component';
 import { InterviewAnalysisComponent } from '../../core/components/interview-analysis/interview-analysis.component';
 import { JobSeekerProfile } from '../../core/models/job-seeker/job-seeker-profile.model';
-import { Invitation, Interview, InterviewAnalysis, InterviewTimeSlot } from '../../core/models/job-seeker/interview.model';
+import { Invitation, Interview, InterviewAnalysis, InterviewTimeSlot, InterviewIntegrityEvent } from '../../core/models/job-seeker/interview.model';
 import { Notification } from '../../core/models/notification/notification.model';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -65,6 +65,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   selectedInvitation: Invitation | null = null;
   activeInterview: Interview | null = null;
   activeAnalysis: InterviewAnalysis | null = null;
+  activeIntegrityEvents: InterviewIntegrityEvent[] = [];
 
   private readonly defaultSlotMinutes = 60;
   private readonly slotMatchToleranceMs = 60 * 1000;
@@ -368,6 +369,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.isAnalysisLoading = true;
     this.analysisError = '';
     this.activeAnalysis = null;
+    this.activeIntegrityEvents = this.loadIntegrityEvents(interview?.id);
 
     this.interviewService.getInterviewAnalysis(interview.id)
       .pipe(takeUntil(this.destroy$))
@@ -387,6 +389,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.showAnalysisModal = false;
     this.activeAnalysis = null;
     this.analysisError = '';
+    this.activeIntegrityEvents = [];
   }
 
   getStatusBadgeClass(status: string): string {
@@ -503,5 +506,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
       hour: '2-digit',
       minute: '2-digit'
     });
+  }
+
+  private loadIntegrityEvents(interviewId?: string): InterviewIntegrityEvent[] {
+    if (!interviewId || typeof window === 'undefined') return [];
+    const key = `interview_integrity_${interviewId}`;
+    try {
+      const raw = localStorage.getItem(key);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
   }
 }

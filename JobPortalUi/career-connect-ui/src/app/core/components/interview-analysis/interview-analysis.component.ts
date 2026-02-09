@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { InterviewAnalysis } from '../../models/job-seeker/interview.model';
+import { InterviewAnalysis, InterviewIntegrityEvent } from '../../models/job-seeker/interview.model';
 
 @Component({
   selector: 'app-interview-analysis',
@@ -62,6 +62,16 @@ import { InterviewAnalysis } from '../../models/job-seeker/interview.model';
         <h3>Summary</h3>
         <div class="summary-box">
           <p>{{ analysis.summary }}</p>
+        </div>
+      </section>
+
+      <section class="analysis-section" *ngIf="integrityEvents && integrityEvents.length > 0">
+        <h3>Integrity Alerts</h3>
+        <div class="integrity-list">
+          <div *ngFor="let event of integrityEvents" class="integrity-item">
+            <span class="integrity-time">{{ formatDate(event.timestamp) }}</span>
+            <span class="integrity-message">{{ event.message }}</span>
+          </div>
         </div>
       </section>
 
@@ -249,6 +259,34 @@ import { InterviewAnalysis } from '../../models/job-seeker/interview.model';
       color: #475569;
     }
 
+    .integrity-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .integrity-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      background: #fff7ed;
+      padding: 12px;
+      border-radius: 10px;
+      border-left: 4px solid #f97316;
+      color: #7c2d12;
+    }
+
+    .integrity-time {
+      font-size: 12px;
+      font-weight: 600;
+      color: #c2410c;
+    }
+
+    .integrity-message {
+      font-size: 14px;
+      color: #7c2d12;
+    }
+
     .strengths-list,
     .improvements-list {
       list-style: none;
@@ -369,6 +407,7 @@ import { InterviewAnalysis } from '../../models/job-seeker/interview.model';
 })
 export class InterviewAnalysisComponent implements OnInit {
   @Input() analysis!: InterviewAnalysis;
+  @Input() integrityEvents: InterviewIntegrityEvent[] = [];
 
   circumference = 2 * Math.PI * 45;
 
@@ -416,6 +455,8 @@ BREAKDOWN:
 
 SUMMARY:
 ${this.analysis.summary}
+
+${this.integrityEvents?.length ? `INTEGRITY ALERTS:\n${this.integrityEvents.map(event => `- ${this.formatDate(event.timestamp)}: ${event.message}`).join('\n')}\n\n` : ''}
 
 KEY STRENGTHS:
 ${this.analysis.keyStrengths.map(s => `- ${s}`).join('\n')}

@@ -80,9 +80,9 @@ builder.Services.AddScoped<JobAppliedEventHandler>();
 builder.Services.AddScoped<JobApplicationWithdrawnEventHandler>();
 builder.Services.AddScoped<IEmailService, ConsoleEmailService>();
 
-builder.Services.Configure<AzureOpenAiOptions>(
-    builder.Configuration.GetSection("AzureOpenAI"));
-builder.Services.AddHttpClient<IAiInterviewService, AzureOpenAiInterviewService>();
+builder.Services.Configure<OpenAiOptions>(
+    builder.Configuration.GetSection("OpenAI"));
+builder.Services.AddHttpClient<IAiInterviewService, OpenAiInterviewService>();
 
 // -----------------------------
 // Messaging Configuration
