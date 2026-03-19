@@ -5,12 +5,12 @@ using Microsoft.AspNetCore.Identity;
 
 namespace IdendityService.Services.UseCases
 {
-    public class ForgotPasswordUseCase : IForgotPasswordUseCase
+    public class Forgot<secret>UseCase : IForgot<secret>UseCase
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IEmailService _emailService;
 
-        public ForgotPasswordUseCase(
+        public Forgot<secret>UseCase(
             UserManager<ApplicationUser> userManager,
             IEmailService emailService)
         {
@@ -18,23 +18,23 @@ namespace IdendityService.Services.UseCases
             _emailService = emailService;
         }
 
-        public async Task ExecuteAsync(string email, string resetPasswordBaseUrl)
+        public async Task ExecuteAsync(string email, string reset<secret>BaseUrl)
         {
             // SECURITY: Do not reveal whether user exists
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null)
                 return;
 
-            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var token = await _userManager.Generate<secret>ResetTokenAsync(user);
 
             var resetUrl =
-                $"{resetPasswordBaseUrl}?email={Uri.EscapeDataString(email)}" +
+                $"{reset<secret>BaseUrl}?email={Uri.EscapeDataString(email)}" +
                 $"&token={Uri.EscapeDataString(token)}";
 
             await _emailService.SendAsync(
                 user.Email!,
-                "Reset your password",
-                $"Click the link to reset password: {resetUrl}");
+                "Reset your <secret>",
+                $"Click the link to reset <secret>: {resetUrl}");
         }
     }
 }

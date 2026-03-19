@@ -19,9 +19,9 @@ namespace JobProviderService.Infrastructure.Messaging
             var factory = new ConnectionFactory
             {
                 HostName = rabbitConfig["Host"] ?? "localhost",
-                Port = int.Parse("5672"),
-                UserName = "guest",
-                Password = "guest",
+                Port = int.Parse(rabbitConfig["Port"] ?? "5672"),
+                UserName = rabbitConfig["UserName"] ?? rabbitConfig["Username"] ?? "guest",
+                <secret> = rabbitConfig["<secret>"] ?? "guest",
                 DispatchConsumersAsync = true
             };
 

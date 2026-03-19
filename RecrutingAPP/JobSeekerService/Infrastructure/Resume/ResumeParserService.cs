@@ -2,6 +2,8 @@ using System.Net.Http.Headers;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
+using Azure.Core;
+using Azure.Identity;
 using JobSeekerService.Application.DTOs;
 using JobSeekerService.Application.Interfaces;
 using JobSeekerService.Domain.Entities;
@@ -15,16 +17,29 @@ namespace JobSeekerService.Infrastructure.Resume
     public class ResumeParserService : IResumeParserService
     {
         private readonly HttpClient _http;
-        private readonly OpenAiOptions _options;
+        private readonly OpenAiOptions _openAiOptions;
+        private readonly AzureOpenAiOptions _azureOptions;
+        private readonly AiProviderOptions _providerOptions;
+        private readonly DefaultAzureCredential _azureCredential;
+        private readonly TokenRequestContext _azureTokenContext;
         private readonly ILogger<ResumeParserService> _logger;
 
         public ResumeParserService(
             HttpClient http,
-            IOptions<OpenAiOptions> options,
+            IOptions<OpenAiOptions> openAiOptions,
+            IOptions<AzureOpenAiOptions> azureOptions,
+            IOptions<AiProviderOptions> providerOptions,
             ILogger<ResumeParserService> logger)
         {
             _http = http;
-            _options = options.Value;
+            _openAiOptions = openAiOptions.Value;
+            _azureOptions = azureOptions.Value;
+            _providerOptions = providerOptions.Value;
+            _azureCredential = new DefaultAzureCredential();
+            var scope = string.IsNullOrWhiteSpace(_azureOptions.TokenScope)
+                ? "https://cognitiveservices.azure.com/.default"
+                : _azureOptions.TokenScope.Trim();
+            _azureTokenContext = new TokenRequestContext(new[] { scope });
             _logger = logger;
         }
 
@@ -102,138 +117,36 @@ namespace JobSeekerService.Infrastructure.Resume
 
         private async Task<ResumeParseResult?> TryParseWithAiAsync(string text)
         {
-            if (string.IsNullOrWhiteSpace(_options.ApiKey) || string.IsNullOrWhiteSpace(_options.Model))
+            return IsAzureProvider(_providerOptions.Provider)
+                ? await TryParseWithAzureAiAsync(text)
+                : await TryParseWithOpenAiAsync(text);
+        }
+
+        private async Task<ResumeParseResult?> TryParseWithOpenAiAsync(string text)
+        {
+            if (string.IsNullOrWhiteSpace(_openAiOptions.ApiKey) || string.IsNullOrWhiteSpace(_openAiOptions.Model))
                 return null;
 
-            var baseUrl = string.IsNullOrWhiteSpace(_options.BaseUrl)
+            var baseUrl = string.IsNullOrWhiteSpace(_openAiOptions.BaseUrl)
                 ? "https://api.openai.com/v1"
-                : _options.BaseUrl.TrimEnd('/');
+                : _openAiOptions.BaseUrl.TrimEnd('/');
 
             var payload = new
             {
-                model = _options.Model,
+                model = _openAiOptions.Model,
                 temperature = 0.0,
-                response_format = new
-                {
-                    type = "json_schema",
-                    json_schema = new
-                    {
-                        name = "resume_parse",
-                        strict = false,
-                        schema = new
-                        {
-                            type = "object",
-                            properties = new
-                            {
-                                fullName = new { type = new[] { "string", "null" } },
-                                email = new { type = new[] { "string", "null" } },
-                                phone = new { type = new[] { "string", "null" } },
-                                headline = new { type = new[] { "string", "null" } },
-                                summary = new { type = new[] { "string", "null" } },
-                                experienceYears = new { type = new[] { "integer", "null" } },
-                                skills = new { type = new[] { "array", "null" }, items = new { type = "string" } },
-                                education = new { type = new[] { "string", "null" } },
-                                workHistory = new
-                                {
-                                    type = new[] { "array", "null" },
-                                    items = new
-                                    {
-                                        type = "object",
-                                        properties = new
-                                        {
-                                            company = new { type = new[] { "string", "null" } },
-                                            role = new { type = new[] { "string", "null" } },
-                                            startDate = new { type = new[] { "string", "null" } },
-                                            endDate = new { type = new[] { "string", "null" } },
-                                            description = new { type = new[] { "string", "null" } },
-                                            skills = new { type = new[] { "array", "null" }, items = new { type = "string" } }
-                                        }
-                                    }
-                                },
-                                educationHistory = new
-                                {
-                                    type = new[] { "array", "null" },
-                                    items = new
-                                    {
-                                        type = "object",
-                                        properties = new
-                                        {
-                                            school = new { type = new[] { "string", "null" } },
-                                            degree = new { type = new[] { "string", "null" } },
-                                            field = new { type = new[] { "string", "null" } },
-                                            graduationYear = new { type = new[] { "string", "null" } }
-                                        }
-                                    }
-                                },
-                                projects = new
-                                {
-                                    type = new[] { "array", "null" },
-                                    items = new
-                                    {
-                                        type = "object",
-                                        properties = new
-                                        {
-                                            name = new { type = new[] { "string", "null" } },
-                                            role = new { type = new[] { "string", "null" } },
-                                            description = new { type = new[] { "string", "null" } },
-                                            link = new { type = new[] { "string", "null" } }
-                                        }
-                                    }
-                                },
-                                certifications = new
-                                {
-                                    type = new[] { "array", "null" },
-                                    items = new
-                                    {
-                                        type = "object",
-                                        properties = new
-                                        {
-                                            name = new { type = new[] { "string", "null" } },
-                                            issuer = new { type = new[] { "string", "null" } },
-                                            year = new { type = new[] { "string", "null" } }
-                                        }
-                                    }
-                                },
-                                languages = new
-                                {
-                                    type = new[] { "array", "null" },
-                                    items = new
-                                    {
-                                        type = "object",
-                                        properties = new
-                                        {
-                                            name = new { type = new[] { "string", "null" } },
-                                            proficiency = new { type = new[] { "string", "null" } }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                messages = new[]
-                {
-                    new
-                    {
-                        role = "system",
-                        content = "You extract structured resume data. Return JSON only. Use empty arrays for missing lists and null for unknown strings."
-                    },
-                    new
-                    {
-                        role = "user",
-                        content = $"Extract resume details from the text below. Fill skills and experience years carefully.\n\nResume:\n{text}"
-                    }
-                }
+                response_format = BuildResumeResponseSchema(),
+                messages = BuildResumeMessages(text)
             };
 
             try
             {
                 using var request = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}/chat/completions");
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _options.ApiKey);
-                if (!string.IsNullOrWhiteSpace(_options.Organization))
-                    request.Headers.Add("OpenAI-Organization", _options.Organization);
-                if (!string.IsNullOrWhiteSpace(_options.Project))
-                    request.Headers.Add("OpenAI-Project", _options.Project);
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _openAiOptions.ApiKey);
+                if (!string.IsNullOrWhiteSpace(_openAiOptions.Organization))
+                    request.Headers.Add("OpenAI-Organization", _openAiOptions.Organization);
+                if (!string.IsNullOrWhiteSpace(_openAiOptions.Project))
+                    request.Headers.Add("OpenAI-Project", _openAiOptions.Project);
 
                 request.Content = new StringContent(
                     System.Text.Json.JsonSerializer.Serialize(payload),
@@ -248,24 +161,205 @@ namespace JobSeekerService.Infrastructure.Resume
                     return null;
                 }
 
-                var json = ExtractContentText(responseBody);
-                if (string.IsNullOrWhiteSpace(json))
-                    return null;
-
-                var result = System.Text.Json.JsonSerializer.Deserialize<ResumeParseResult>(
-                    json,
-                    new System.Text.Json.JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true
-                    });
-
-                return result;
+                return DeserializeResumeResult(responseBody);
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "OpenAI resume parse threw an exception.");
                 return null;
             }
+        }
+
+        private async Task<ResumeParseResult?> TryParseWithAzureAiAsync(string text)
+        {
+            if (string.IsNullOrWhiteSpace(_azureOptions.Endpoint) ||
+                string.IsNullOrWhiteSpace(_azureOptions.Deployment) ||
+                string.IsNullOrWhiteSpace(_azureOptions.ApiVersion))
+            {
+                return null;
+            }
+
+            var endpoint = _azureOptions.Endpoint.TrimEnd('/');
+            var requestUri =
+                $"{endpoint}/openai/deployments/{_azureOptions.Deployment}/chat/completions?api-version={_azureOptions.ApiVersion}";
+
+            var payload = new
+            {
+                temperature = 0.0,
+                response_format = BuildResumeResponseSchema(),
+                messages = BuildResumeMessages(text)
+            };
+
+            try
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Post, requestUri);
+                var token = await _azureCredential.GetTokenAsync(_azureTokenContext, default);
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+                request.Content = new StringContent(
+                    System.Text.Json.JsonSerializer.Serialize(payload),
+                    Encoding.UTF8,
+                    "application/json");
+
+                using var response = await _http.SendAsync(request);
+                var responseBody = await response.Content.ReadAsStringAsync();
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("Azure OpenAI resume parse failed: {Status} {Body}", response.StatusCode, responseBody);
+                    return null;
+                }
+
+                return DeserializeResumeResult(responseBody);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Azure OpenAI resume parse threw an exception.");
+                return null;
+            }
+        }
+
+        private static object BuildResumeResponseSchema()
+        {
+            return new
+            {
+                type = "json_schema",
+                json_schema = new
+                {
+                    name = "resume_parse",
+                    strict = false,
+                    schema = new
+                    {
+                        type = "object",
+                        properties = new
+                        {
+                            fullName = new { type = new[] { "string", "null" } },
+                            email = new { type = new[] { "string", "null" } },
+                            phone = new { type = new[] { "string", "null" } },
+                            headline = new { type = new[] { "string", "null" } },
+                            summary = new { type = new[] { "string", "null" } },
+                            experienceYears = new { type = new[] { "integer", "null" } },
+                            skills = new { type = new[] { "array", "null" }, items = new { type = "string" } },
+                            education = new { type = new[] { "string", "null" } },
+                            workHistory = new
+                            {
+                                type = new[] { "array", "null" },
+                                items = new
+                                {
+                                    type = "object",
+                                    properties = new
+                                    {
+                                        company = new { type = new[] { "string", "null" } },
+                                        role = new { type = new[] { "string", "null" } },
+                                        startDate = new { type = new[] { "string", "null" } },
+                                        endDate = new { type = new[] { "string", "null" } },
+                                        description = new { type = new[] { "string", "null" } },
+                                        skills = new { type = new[] { "array", "null" }, items = new { type = "string" } }
+                                    }
+                                }
+                            },
+                            educationHistory = new
+                            {
+                                type = new[] { "array", "null" },
+                                items = new
+                                {
+                                    type = "object",
+                                    properties = new
+                                    {
+                                        school = new { type = new[] { "string", "null" } },
+                                        degree = new { type = new[] { "string", "null" } },
+                                        field = new { type = new[] { "string", "null" } },
+                                        graduationYear = new { type = new[] { "string", "null" } }
+                                    }
+                                }
+                            },
+                            projects = new
+                            {
+                                type = new[] { "array", "null" },
+                                items = new
+                                {
+                                    type = "object",
+                                    properties = new
+                                    {
+                                        name = new { type = new[] { "string", "null" } },
+                                        role = new { type = new[] { "string", "null" } },
+                                        description = new { type = new[] { "string", "null" } },
+                                        link = new { type = new[] { "string", "null" } }
+                                    }
+                                }
+                            },
+                            certifications = new
+                            {
+                                type = new[] { "array", "null" },
+                                items = new
+                                {
+                                    type = "object",
+                                    properties = new
+                                    {
+                                        name = new { type = new[] { "string", "null" } },
+                                        issuer = new { type = new[] { "string", "null" } },
+                                        year = new { type = new[] { "string", "null" } }
+                                    }
+                                }
+                            },
+                            languages = new
+                            {
+                                type = new[] { "array", "null" },
+                                items = new
+                                {
+                                    type = "object",
+                                    properties = new
+                                    {
+                                        name = new { type = new[] { "string", "null" } },
+                                        proficiency = new { type = new[] { "string", "null" } }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
+        private static object[] BuildResumeMessages(string text)
+        {
+            return new[]
+            {
+                new
+                {
+                    role = "system",
+                    content = "You extract structured resume data. Return JSON only. Use empty arrays for missing lists and null for unknown strings."
+                },
+                new
+                {
+                    role = "user",
+                    content = $"Extract resume details from the text below. Fill skills and experience years carefully.\n\nResume:\n{text}"
+                }
+            };
+        }
+
+        private ResumeParseResult? DeserializeResumeResult(string responseBody)
+        {
+            var json = ExtractContentText(responseBody);
+            if (string.IsNullOrWhiteSpace(json))
+                return null;
+
+            return System.Text.Json.JsonSerializer.Deserialize<ResumeParseResult>(
+                json,
+                new System.Text.Json.JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+        }
+
+        private static bool IsAzureProvider(string? provider)
+        {
+            if (string.IsNullOrWhiteSpace(provider))
+                return false;
+
+            var normalized = provider.Trim();
+            return normalized.Equals("AzureAI", StringComparison.OrdinalIgnoreCase)
+                || normalized.Equals("AzureOpenAI", StringComparison.OrdinalIgnoreCase)
+                || normalized.Equals("Azure", StringComparison.OrdinalIgnoreCase)
+                || normalized.Equals("Azure AI Foundry", StringComparison.OrdinalIgnoreCase);
         }
 
         private static string ExtractContentText(string json)

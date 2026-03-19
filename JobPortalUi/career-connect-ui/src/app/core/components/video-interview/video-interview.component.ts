@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter, ViewChild, ElementRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Interview, InterviewQuestion, InterviewIntegrityEvent, InterviewIntegrityEventType } from '../../models/job-seeker/interview.model';
 import { InterviewService } from '../../services/interview.service';
 import { ToastService } from '../../services/toast.service';
@@ -16,12 +17,13 @@ interface CocoModel {
 @Component({
   selector: 'app-video-interview',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './video-interview.component.html',
   styleUrls: ['./video-interview.component.scss']
 })
 export class VideoInterviewComponent implements OnInit {
   @Input() interview!: Interview;
+  @Input() publicToken?: string;
   @Output() submitted = new EventEmitter<Interview>();
   @Output() closed = new EventEmitter<void>();
 
@@ -38,6 +40,7 @@ export class VideoInterviewComponent implements OnInit {
   recordedBlob: Blob | null = null;
   isCameraLoading = false;
   isSubmitting = false;
+  isUploading = false;
   isCameraReady = false;
   isMobileDevice = false;
   isFullscreen = false;
@@ -61,6 +64,8 @@ export class VideoInterviewComponent implements OnInit {
   private readonly deviceClasses = new Set(['cell phone']);
   private readonly integrityStorageKeyPrefix = 'interview_integrity_';
   answeredQuestions = new Set<number>();
+  answerText = '';
+  private answerTextMap = new Map<number, string>();
   private readonly isBrowser = typeof window !== 'undefined' && typeof document !== 'undefined';
   private visibilityHandler = () => {
     if (!this.isBrowser) return;
@@ -231,17 +236,24 @@ export class VideoInterviewComponent implements OnInit {
   }
 
   goToNextQuestion(): void {
-    if (this.currentQuestionIndex < this.questions.length - 1) {
-      this.goToQuestion(this.currentQuestionIndex + 1);
+    if (this.currentQuestionIndex >= this.questions.length - 1) return;
+
+    if (this.isPublicInterview) {
+      this.uploadAndProceed(this.currentQuestionIndex + 1);
+      return;
     }
+
+    this.goToQuestion(this.currentQuestionIndex + 1);
   }
 
   goToQuestion(index: number): void {
+    this.answerTextMap.set(this.currentQuestionIndex, this.answerText);
     this.currentQuestionIndex = index;
     this.currentQuestion = this.questions[index];
     this.currentExpectedDuration = this.currentQuestion?.expectedDuration ?? null;
     this.recordedBlob = null;
     this.recordingTime = 0;
+    this.answerText = this.answerTextMap.get(index) ?? '';
     this.stopRecording();
     this.stopDeviceDetection();
   }
@@ -249,6 +261,11 @@ export class VideoInterviewComponent implements OnInit {
   submitInterview(): void {
     if (!this.allQuestionsAnswered) {
       this.toastService.show('Please answer all questions');
+      return;
+    }
+
+    if (this.isPublicInterview) {
+      this.submitPublicInterview();
       return;
     }
 
@@ -294,6 +311,89 @@ export class VideoInterviewComponent implements OnInit {
 
   get canAttemptRecording(): boolean {
     return !this.isMobileDevice && this.isCameraReady && this.isPageVisible;
+  }
+
+  get isPublicInterview(): boolean {
+    return !!this.publicToken;
+  }
+
+  get canProceed(): boolean {
+    if (!this.recordedBlob || this.isUploading) return false;
+    if (this.isPublicInterview && !this.answerText.trim()) return false;
+    return true;
+  }
+
+  private uploadAndProceed(nextIndex: number): void {
+    if (!this.recordedBlob) {
+      this.toastService.show('Please record or upload a response.');
+      return;
+    }
+
+    const answerText = this.answerText.trim();
+    if (this.isPublicInterview && !answerText) {
+      this.toastService.show('Please add a short answer summary.');
+      return;
+    }
+
+    if (!this.publicToken) {
+      this.goToQuestion(nextIndex);
+      return;
+    }
+
+    this.isUploading = true;
+    this.interviewService.uploadPublicResponse(
+      this.publicToken,
+      this.currentQuestionIndex + 1,
+      answerText,
+      this.recordedBlob,
+      this.recordingTime
+    ).subscribe({
+      next: () => {
+        this.isUploading = false;
+        this.answerTextMap.set(this.currentQuestionIndex, answerText);
+        this.goToQuestion(nextIndex);
+      },
+      error: () => {
+        this.isUploading = false;
+        this.toastService.show('Unable to upload answer. Please try again.');
+      }
+    });
+  }
+
+  private submitPublicInterview(): void {
+    if (!this.publicToken) return;
+    if (!this.recordedBlob) {
+      this.toastService.show('Please record or upload a response.');
+      return;
+    }
+
+    const answerText = this.answerText.trim();
+    if (!answerText) {
+      this.toastService.show('Please add a short answer summary.');
+      return;
+    }
+
+    this.isSubmitting = true;
+    this.isUploading = true;
+    this.interviewService.uploadPublicResponse(
+      this.publicToken,
+      this.currentQuestionIndex + 1,
+      answerText,
+      this.recordedBlob,
+      this.recordingTime
+    ).subscribe({
+      next: () => {
+        this.isSubmitting = false;
+        this.isUploading = false;
+        this.toastService.show('Interview submitted successfully!');
+        this.submitted.emit(this.interview);
+      },
+      error: () => {
+        this.isSubmitting = false;
+        this.isUploading = false;
+        this.toastService.show('Failed to submit interview');
+      }
+    });
   }
 
   private detectMobileDevice(): boolean {

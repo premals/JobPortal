@@ -33,6 +33,12 @@ export const routes: Routes = [
             import('./auth/reset-password/reset-password.component')
                 .then(c => c.ResetPasswordComponent)
     },
+    {
+        path: 'public-interview',
+        loadComponent: () =>
+            import('./public-interview/public-interview.component')
+                .then(c => c.PublicInterviewComponent)
+    },
 
     /* =======================
        PROFILE (AFTER LOGIN)

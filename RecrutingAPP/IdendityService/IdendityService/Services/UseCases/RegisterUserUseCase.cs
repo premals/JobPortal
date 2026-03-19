@@ -1,4 +1,4 @@
-using IdendityService.DTOs;
+﻿using IdendityService.DTOs;
 using IdendityService.Infrastructure.Messaging;
 using IdendityService.Interfaces;
 using IdendityService.Interfaces.Auth;
@@ -46,7 +46,7 @@ namespace IdendityService.Services.UseCases
                 FullName = request.FullName
             };
 
-            var createResult = await _userManager.CreateAsync(user, request.Password);
+            var createResult = await _userManager.CreateAsync(user, request.<secret>);
             if (!createResult.Succeeded)
                 return Result.Fail("User creation failed.");
 

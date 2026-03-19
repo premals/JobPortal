@@ -25,9 +25,22 @@
         <input type="datetime-local" class="form-control" [(ngModel)]="inviteSlots[i]">
       </div>
 
+      <div class="form-group">
+        <label>Custom Questions (optional)</label>
+        <textarea
+          class="form-control"
+          rows="4"
+          placeholder="One question per line"
+          [(ngModel)]="inviteCustomQuestions"></textarea>
+        <p class="helper-text">
+          If provided, these replace the default AI question set.
+        </p>
+      </div>
+
       <div class="invite-meta">
         <span>Slot duration: {{ settings.interview.slotDurationMinutes }} minutes</span>
-        <span>Questions: {{ inviteQuestionsCount }}</span>
+        <span *ngIf="customQuestionCount > 0">Custom questions: {{ customQuestionCount }}</span>
+        <span *ngIf="customQuestionCount === 0">Questions: {{ inviteQuestionsCount }}</span>
       </div>
     </div>
     <ng-template #missingSettings>

@@ -41,6 +41,7 @@ export interface JobSeekerProfile {
   fullName: string;
   email: string;
   phone?: string;
+  gender?: string;
   headline?: string;
   summary?: string;
   skills: string[];

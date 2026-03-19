@@ -13,6 +13,7 @@ namespace JobSeekerService.Domain.Entities
         public string FullName { get; set; } = null!;
         public string Email { get; set; } = null!;
         public string? Phone { get; set; }
+        public string? Gender { get; set; }
         public string? Headline { get; set; }
         public string? Summary { get; set; }
         public List<string> Skills { get; set; } = new();

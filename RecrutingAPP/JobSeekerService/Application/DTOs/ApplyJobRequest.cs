@@ -7,16 +7,15 @@ namespace JobSeekerService.Application.DTOs
         [Required(ErrorMessage = "JobId is required")]
         public string JobId { get; set; } = null!;
 
-        [Required(ErrorMessage = "JobProviderId is required")]
-        public string JobProviderId { get; set; } = null!;
+        // Optional from client; server resolves from job snapshot when omitted.
+        public string? JobProviderId { get; set; }
 
         // ============================
         // Resume Information
         // ============================
 
-        [Required(ErrorMessage = "Resume URL is required")]
         [Url(ErrorMessage = "ResumeUrl must be a valid URL")]
-        public string ResumeUrl { get; set; } = null!;
+        public string? ResumeUrl { get; set; }
 
         // ============================
         // Optional Fields

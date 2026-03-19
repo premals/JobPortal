@@ -9,6 +9,7 @@ export interface JobProviderSettings {
   ai: {
     enableShortlistSuggestions: boolean;
     enableInterviewAi: boolean;
+    provider?: string;
     endpoint?: string;
     deployment?: string;
     apiVersion?: string;

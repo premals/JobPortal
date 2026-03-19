@@ -1,5 +1,6 @@
 using JobProviderService.Application.Interfaces;
 using JobProviderService.Domain;
+using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
 
 namespace JobProviderService.Infrastructure.Repository
@@ -7,10 +8,12 @@ namespace JobProviderService.Infrastructure.Repository
     public class JobProviderSettingsRepository : IJobProviderSettingsRepository
     {
         private readonly IMongoCollection<JobProviderSettings> _collection;
+        private readonly string? _defaultAiProvider;
 
-        public JobProviderSettingsRepository(MongoDbContext context)
+        public JobProviderSettingsRepository(MongoDbContext context, IConfiguration configuration)
         {
             _collection = context.JobProviderSettings;
+            _defaultAiProvider = configuration["AI:Provider"]?.Trim();
         }
 
         public async Task<JobProviderSettings> GetOrCreateAsync(string providerId)
@@ -29,6 +32,8 @@ namespace JobProviderService.Infrastructure.Repository
             {
                 JobProviderId = providerId
             };
+            if (!string.IsNullOrWhiteSpace(_defaultAiProvider))
+                settings.Ai.Provider = _defaultAiProvider;
 
             await _collection.InsertOneAsync(settings);
             return settings;

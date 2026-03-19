@@ -33,6 +33,7 @@ export class JobApplicationsComponent implements OnInit {
   inviteDifficulty = '';
   inviteSlots: string[] = [];
   inviteQuestionsCount = 0;
+  inviteCustomQuestions = '';
   showReportModal = false;
   reportLoading = false;
   reportError = '';
@@ -238,7 +239,8 @@ export class JobApplicationsComponent implements OnInit {
     const payload = {
       difficulty: this.inviteDifficulty,
       proposedSlots: slots,
-      questionsCount: this.inviteQuestionsCount
+      questionsCount: this.inviteQuestionsCount,
+      customQuestions: this.buildCustomQuestions()
     };
 
     this.service.sendInterviewInvite(this.jobId, this.inviteTarget.jobSeekerId, payload).subscribe({
@@ -272,6 +274,10 @@ export class JobApplicationsComponent implements OnInit {
     return this.settings?.interview?.difficultyLevels ?? [];
   }
 
+  get customQuestionCount(): number {
+    return this.buildCustomQuestions().length;
+  }
+
   private resetInviteFields(): void {
     if (!this.settings) return;
     const slotCount = Number(this.settings.interview.slotCount ?? 0);
@@ -280,6 +286,7 @@ export class JobApplicationsComponent implements OnInit {
       || this.settings.interview.difficultyLevels[0]
       || '';
     this.inviteQuestionsCount = Number(this.settings.interview.questionsCount ?? 0);
+    this.inviteCustomQuestions = '';
   }
 
   private normalizeSettings(res: any): JobProviderSettings {
@@ -307,5 +314,12 @@ export class JobApplicationsComponent implements OnInit {
         inviteBody: res?.email?.inviteBody ?? ''
       }
     };
+  }
+
+  private buildCustomQuestions(): string[] {
+    return this.inviteCustomQuestions
+      .split('\n')
+      .map(value => value.trim())
+      .filter(value => !!value);
   }
 }

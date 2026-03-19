@@ -1,4 +1,4 @@
-using AspNetCore.Identity.MongoDbCore.Extensions;
+﻿using AspNetCore.Identity.MongoDbCore.Extensions;
 using AspNetCore.Identity.MongoDbCore.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
@@ -64,10 +64,10 @@ internal static class Program
                 EmailConfirmed = true,
                 EmailVerified = true,
                 IsActive = true,
-                ForcePasswordReset = options.ForcePasswordReset
+                Force<secret>Reset = options.Force<secret>Reset
             };
 
-            var create = await userManager.CreateAsync(user, options.Password);
+            var create = await userManager.CreateAsync(user, options.<secret>);
             if (!create.Succeeded)
             {
                 Console.Error.WriteLine("Failed to create user: " + string.Join("; ", create.Errors.Select(e => e.Description)));
@@ -80,7 +80,7 @@ internal static class Program
             user.EmailConfirmed = true;
             user.EmailVerified = true;
             user.IsActive = true;
-            if (options.ForcePasswordReset) user.ForcePasswordReset = true;
+            if (options.Force<secret>Reset) user.Force<secret>Reset = true;
 
             var update = await userManager.UpdateAsync(user);
             if (!update.Succeeded)
@@ -89,13 +89,13 @@ internal static class Program
                 return 4;
             }
 
-            if (options.ResetPassword)
+            if (options.Reset<secret>)
             {
-                var token = await userManager.GeneratePasswordResetTokenAsync(user);
-                var reset = await userManager.ResetPasswordAsync(user, token, options.Password);
+                var token = await userManager.Generate<secret>ResetTokenAsync(user);
+                var reset = await userManager.Reset<secret>Async(user, token, options.<secret>);
                 if (!reset.Succeeded)
                 {
-                    Console.Error.WriteLine("Failed to reset password: " + string.Join("; ", reset.Errors.Select(e => e.Description)));
+                    Console.Error.WriteLine("Failed to reset <secret>: " + string.Join("; ", reset.Errors.Select(e => e.Description)));
                     return 5;
                 }
             }
@@ -159,7 +159,7 @@ public class ApplicationUser : MongoIdentityUser<Guid>
     public bool EmailVerified { get; set; } = true;
     public List<RefreshToken> RefreshTokens { get; set; } = new();
     public bool IsActive { get; set; } = true;
-    public bool ForcePasswordReset { get; set; } = false;
+    public bool Force<secret>Reset { get; set; } = false;
 }
 
 [CollectionName("Roles")]
@@ -177,13 +177,13 @@ public class RefreshToken
 internal sealed class Args
 {
     public string Email { get; private set; } = string.Empty;
-    public string Password { get; private set; } = string.Empty;
+    public string <secret> { get; private set; } = string.Empty;
     public string FullName { get; private set; } = string.Empty;
     public string? MongoConnectionString { get; set; }
     public string? MongoDatabase { get; set; }
     public string? AppSettingsPath { get; set; }
-    public bool ForcePasswordReset { get; private set; }
-    public bool ResetPassword { get; private set; }
+    public bool Force<secret>Reset { get; private set; }
+    public bool Reset<secret> { get; private set; }
     public bool IsValid { get; private set; }
 
     public static Args Parse(string[] args)
@@ -196,17 +196,17 @@ internal sealed class Args
         }
 
         result.Email = GetArg("--email") ?? string.Empty;
-        result.Password = GetArg("--password") ?? string.Empty;
+        result.<secret> = GetArg("--<secret>") ?? string.Empty;
         result.FullName = GetArg("--full-name") ?? string.Empty;
         result.MongoConnectionString = GetArg("--mongo");
         result.MongoDatabase = GetArg("--db");
         result.AppSettingsPath = GetArg("--appsettings");
-        result.ForcePasswordReset = args.Contains("--force-reset");
-        result.ResetPassword = args.Contains("--reset-password");
+        result.Force<secret>Reset = args.Contains("--force-reset");
+        result.Reset<secret> = args.Contains("--reset-<secret>");
 
         result.IsValid =
             !string.IsNullOrWhiteSpace(result.Email) &&
-            !string.IsNullOrWhiteSpace(result.Password) &&
+            !string.IsNullOrWhiteSpace(result.<secret>) &&
             !string.IsNullOrWhiteSpace(result.FullName);
 
         return result;
@@ -215,12 +215,12 @@ internal sealed class Args
     public static void PrintUsage()
     {
         Console.WriteLine("Usage:");
-        Console.WriteLine("  dotnet run --project AdminSeeder -- --email <email> --password <password> --full-name <name>");
+        Console.WriteLine("  dotnet run --project AdminSeeder -- --email <email> --<secret> <<secret>> --full-name <name>");
         Console.WriteLine("Optional:");
         Console.WriteLine("  --mongo <connectionString>   Mongo connection string");
         Console.WriteLine("  --db <databaseName>          Mongo database name");
         Console.WriteLine("  --appsettings <path>         appsettings.json path (defaults to IdentityService appsettings.json if found)");
-        Console.WriteLine("  --force-reset                Set ForcePasswordReset = true");
-        Console.WriteLine("  --reset-password             Reset password for existing user");
+        Console.WriteLine("  --force-reset                Set Force<secret>Reset = true");
+        Console.WriteLine("  --reset-<secret>             Reset <secret> for existing user");
     }
 }

@@ -1,8 +1,8 @@
-{
+﻿{
   "profiles": {
     "AdminSeeder": {
       "commandName": "Project",
-      "commandLineArgs": "--email \"admin@example.com\" --password \"Admin@12345\" --full-name \"System Admin\" --mongo \"mongodb://localhost:27017\" --db \"AuthDb\""
+      "commandLineArgs": "--email \"admin@example.com\" --<secret> \"Admin@12345\" --full-name \"System Admin\" --mongo \"mongodb://localhost:27017\" --db \"AuthDb\""
     }
   }
 }

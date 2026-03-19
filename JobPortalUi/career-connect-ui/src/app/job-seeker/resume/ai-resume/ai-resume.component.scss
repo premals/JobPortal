@@ -157,6 +157,13 @@
   font-size: 13px;
 }
 
+.card-head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .file-drop {
   display: flex;
   gap: 14px;
@@ -276,6 +283,44 @@
   grid-template-columns: 1fr auto;
   gap: 10px;
   align-items: center;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.repeat-card {
+  border: 1px solid var(--ai-border);
+  border-radius: 14px;
+  padding: 12px;
+  background: var(--ai-surface-soft);
+  display: grid;
+  gap: 10px;
+}
+
+.repeat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--ai-ink);
+}
+
+.link-btn {
+  border: none;
+  background: transparent;
+  color: #ef4444;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.muted {
+  margin: 0;
+  color: var(--ai-muted);
+  font-size: 12px;
 }
 
 .skill-chips {

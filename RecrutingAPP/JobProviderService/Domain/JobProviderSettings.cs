@@ -29,11 +29,12 @@ namespace JobProviderService.Domain
     {
         public bool EnableShortlistSuggestions { get; set; } = true;
         public bool EnableInterviewAi { get; set; } = true;
+        public string Provider { get; set; }
         public string? Endpoint { get; set; }
         public string? Deployment { get; set; }
         public string? ApiVersion { get; set; }
-        public bool EnableAvatar { get; set; } = false;
-        public string? AvatarProvider { get; set; }
+        public bool EnableAvatar { get; set; } = true;
+        public string? AvatarProvider { get; set; } = "Men";
     }
 
     public class EmailTemplateSettings
@@ -41,6 +42,6 @@ namespace JobProviderService.Domain
         public string InviteSubject { get; set; } = "Interview invitation for {JobTitle}";
         public string InviteBody { get; set; } =
             "Hello {CandidateName}, you have been invited to interview for {JobTitle}. " +
-            "Please open your dashboard and choose a time slot.";
+            "Please use this link to schedule your interview: {InterviewLink}";
     }
 }

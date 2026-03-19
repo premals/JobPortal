@@ -25,6 +25,7 @@ namespace JobProviderService.Application.Interfaces
 
     public class AiRuntimeConfig
     {
+        public string? Provider { get; set; }
         public string? Endpoint { get; set; }
         public string? Deployment { get; set; }
         public string? ApiVersion { get; set; }

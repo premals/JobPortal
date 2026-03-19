@@ -7,6 +7,7 @@ namespace JobSeekerService.Application.DTOs
         public string FullName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string? Phone { get; set; }
+        public string? Gender { get; set; }
         public string? Headline { get; set; }
         public string? Summary { get; set; }
         public List<string> Skills { get; set; } = new();

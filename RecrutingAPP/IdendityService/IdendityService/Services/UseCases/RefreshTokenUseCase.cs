@@ -39,7 +39,7 @@ public class RefreshTokenUseCase (UserManager<ApplicationUser> _userManager, IJw
                 user.FullName,
                 user.Email!,
                 roles.FirstOrDefault() ?? "JobSeeker",
-                user.ForcePasswordReset
+                user.Force<secret>Reset
             );
 
             return new DTOs.AuthResponseDto.AuthResponse(

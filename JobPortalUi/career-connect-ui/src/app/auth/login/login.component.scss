@@ -200,10 +200,21 @@
   color: #1e293b;
 }
 
+.form-control.is-invalid {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+}
+
 .helper {
   color: #64748b;
   font-size: 12px;
   margin-top: 6px;
+}
+
+.field-error {
+  color: #dc2626;
+  font-size: 12px;
+  margin: 6px 0 0;
 }
 
 .password-field {

@@ -106,6 +106,11 @@ export class JobProviderSettingsComponent implements OnInit {
     return this.settings?.interview?.difficultyLevels ?? [];
   }
 
+  get isAzureProvider(): boolean {
+    const provider = this.settings?.ai?.provider ?? '';
+    return provider.toLowerCase().startsWith('azure');
+  }
+
   private normalizeSettings(res: any): JobProviderSettings {
     return {
       interview: {
@@ -120,6 +125,7 @@ export class JobProviderSettingsComponent implements OnInit {
       ai: {
         enableShortlistSuggestions: !!res?.ai?.enableShortlistSuggestions,
         enableInterviewAi: !!res?.ai?.enableInterviewAi,
+        provider: res?.ai?.provider ?? 'OpenAI',
         endpoint: res?.ai?.endpoint ?? '',
         deployment: res?.ai?.deployment ?? '',
         apiVersion: res?.ai?.apiVersion ?? '',

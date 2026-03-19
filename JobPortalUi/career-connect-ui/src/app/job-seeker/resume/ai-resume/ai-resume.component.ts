@@ -66,6 +66,8 @@ export class AiResumeComponent implements OnInit {
     location: '',
     summary: '',
     skills: [],
+    experienceYears: undefined,
+    education: '',
     workHistory: [],
     educationHistory: [],
     projects: [],
@@ -89,7 +91,9 @@ export class AiResumeComponent implements OnInit {
       this.draft.skills.length ||
       this.draft.workHistory.length ||
       this.draft.educationHistory.length ||
-      this.draft.projects.length
+      this.draft.projects.length ||
+      this.draft.education ||
+      (this.draft.experienceYears ?? 0) > 0
     );
   }
 
@@ -207,6 +211,71 @@ export class AiResumeComponent implements OnInit {
     this.saveDraft();
   }
 
+  addWork(): void {
+    this.draft.workHistory = [
+      ...this.draft.workHistory,
+      { company: '', role: '', startDate: '', endDate: '', description: '', skills: [] }
+    ];
+    this.saveDraft();
+  }
+
+  removeWork(index: number): void {
+    this.draft.workHistory = this.draft.workHistory.filter((_, i) => i !== index);
+    this.saveDraft();
+  }
+
+  addEducation(): void {
+    this.draft.educationHistory = [
+      ...this.draft.educationHistory,
+      { school: '', degree: '', field: '', graduationYear: '' }
+    ];
+    this.saveDraft();
+  }
+
+  removeEducation(index: number): void {
+    this.draft.educationHistory = this.draft.educationHistory.filter((_, i) => i !== index);
+    this.saveDraft();
+  }
+
+  addProject(): void {
+    this.draft.projects = [
+      ...this.draft.projects,
+      { name: '', role: '', description: '', link: '' }
+    ];
+    this.saveDraft();
+  }
+
+  removeProject(index: number): void {
+    this.draft.projects = this.draft.projects.filter((_, i) => i !== index);
+    this.saveDraft();
+  }
+
+  addCertification(): void {
+    this.draft.certifications = [
+      ...this.draft.certifications,
+      { name: '', issuer: '', year: '' }
+    ];
+    this.saveDraft();
+  }
+
+  removeCertification(index: number): void {
+    this.draft.certifications = this.draft.certifications.filter((_, i) => i !== index);
+    this.saveDraft();
+  }
+
+  addLanguage(): void {
+    this.draft.languages = [
+      ...this.draft.languages,
+      { name: '', proficiency: '' }
+    ];
+    this.saveDraft();
+  }
+
+  removeLanguage(index: number): void {
+    this.draft.languages = this.draft.languages.filter((_, i) => i !== index);
+    this.saveDraft();
+  }
+
   downloadResume(): void {
     if (typeof window === 'undefined') return;
     this.isGeneratingPdf = true;
@@ -245,6 +314,8 @@ export class AiResumeComponent implements OnInit {
       location: profile.location || '',
       summary: profile.summary || '',
       skills: profile.skills || [],
+      experienceYears: profile.experienceYears,
+      education: profile.education || '',
       workHistory: profile.workHistory || [],
       educationHistory: profile.educationHistory || [],
       projects: profile.projects || [],
@@ -263,6 +334,8 @@ export class AiResumeComponent implements OnInit {
       phone: result.phone ?? base.phone,
       summary: result.summary ?? base.summary,
       skills: this.mergeList(result.skills, base.skills),
+      experienceYears: result.experienceYears ?? base.experienceYears,
+      education: result.education ?? base.education,
       workHistory: this.mergeList(result.workHistory, base.workHistory),
       educationHistory: this.mergeList(result.educationHistory, base.educationHistory),
       projects: this.mergeList(result.projects, base.projects),
@@ -318,6 +391,8 @@ export class AiResumeComponent implements OnInit {
       location: draft.location || '',
       summary: draft.summary || '',
       skills: draft.skills || [],
+      experienceYears: draft.experienceYears,
+      education: draft.education || '',
       workHistory: draft.workHistory || [],
       educationHistory: draft.educationHistory || [],
       projects: draft.projects || [],

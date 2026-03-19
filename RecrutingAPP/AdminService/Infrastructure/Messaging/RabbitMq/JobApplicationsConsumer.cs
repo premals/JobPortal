@@ -1,4 +1,4 @@
-using AdminService.Infrastructure.Messaging;
+﻿using AdminService.Infrastructure.Messaging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
@@ -25,7 +25,7 @@ namespace AdminService.Infrastructure.Messaging.RabbitMq
                 HostName = rabbitConfig["Host"] ?? "localhost",
                 Port = int.Parse(rabbitConfig["Port"] ?? "5672"),
                 UserName = rabbitConfig["Username"] ?? "guest",
-                Password = rabbitConfig["Password"] ?? "guest",
+                <secret> = rabbitConfig["<secret>"] ?? "guest",
                 DispatchConsumersAsync = true
             };
 

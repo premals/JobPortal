@@ -36,31 +36,49 @@
 
         <div class="mb-3">
           <label class="form-label">Job Title</label>
-          <input type="text" class="form-control" formControlName="title">
+          <input
+            type="text"
+            class="form-control"
+            formControlName="title"
+            [class.is-invalid]="isFieldInvalid('title')">
+          <p class="field-error" *ngIf="getFieldError('title', 'Job title') as error">{{ error }}</p>
         </div>
 
         <div class="mb-3">
           <label class="form-label">Job Description</label>
-          <textarea class="form-control" rows="5" formControlName="description"></textarea>
+          <textarea
+            class="form-control"
+            rows="5"
+            formControlName="description"
+            [class.is-invalid]="isFieldInvalid('description')"></textarea>
+          <p class="field-error" *ngIf="getFieldError('description', 'Job description') as error">{{ error }}</p>
         </div>
 
         <div class="row mb-3">
           <div class="col-md-6">
             <label class="form-label">Employment Type</label>
-            <select class="form-select" formControlName="employmentType">
+            <select
+              class="form-select"
+              formControlName="employmentType"
+              [class.is-invalid]="isFieldInvalid('employmentType')">
               <option value="FullTime">Full Time</option>
               <option value="PartTime">Part Time</option>
               <option value="Contract">Contract</option>
             </select>
+            <p class="field-error" *ngIf="getFieldError('employmentType', 'Employment type') as error">{{ error }}</p>
           </div>
 
           <div class="col-md-6">
             <label class="form-label">Work Mode</label>
-            <select class="form-select" formControlName="workMode">
+            <select
+              class="form-select"
+              formControlName="workMode"
+              [class.is-invalid]="isFieldInvalid('workMode')">
               <option value="Onsite">Onsite</option>
               <option value="Remote">Remote</option>
               <option value="Hybrid">Hybrid</option>
             </select>
+            <p class="field-error" *ngIf="getFieldError('workMode', 'Work mode') as error">{{ error }}</p>
           </div>
         </div>
 
@@ -72,46 +90,86 @@
         <div class="row mb-3">
           <div class="col-md-6">
             <label class="form-label">Min Experience (Years)</label>
-            <input type="number" class="form-control" formControlName="minExperience">
+            <input
+              type="number"
+              class="form-control"
+              formControlName="minExperience"
+              [class.is-invalid]="isFieldInvalid('minExperience')">
+            <p class="field-error" *ngIf="getFieldError('minExperience', 'Minimum experience') as error">{{ error }}</p>
           </div>
 
           <div class="col-md-6">
             <label class="form-label">Max Experience (Years)</label>
-            <input type="number" class="form-control" formControlName="maxExperience">
+            <input
+              type="number"
+              class="form-control"
+              formControlName="maxExperience"
+              [class.is-invalid]="isFieldInvalid('maxExperience')">
+            <p class="field-error" *ngIf="getFieldError('maxExperience', 'Maximum experience') as error">{{ error }}</p>
           </div>
         </div>
 
         <div class="row mb-3">
           <div class="col-md-4">
             <label class="form-label">City</label>
-            <input type="text" class="form-control" formControlName="city">
+            <input
+              type="text"
+              class="form-control"
+              formControlName="city"
+              [class.is-invalid]="isFieldInvalid('city')">
+            <p class="field-error" *ngIf="getFieldError('city', 'City') as error">{{ error }}</p>
           </div>
 
           <div class="col-md-4">
             <label class="form-label">State</label>
-            <input type="text" class="form-control" formControlName="state">
+            <input
+              type="text"
+              class="form-control"
+              formControlName="state"
+              [class.is-invalid]="isFieldInvalid('state')">
+            <p class="field-error" *ngIf="getFieldError('state', 'State') as error">{{ error }}</p>
           </div>
 
           <div class="col-md-4">
             <label class="form-label">Country</label>
-            <input type="text" class="form-control" formControlName="country">
+            <input
+              type="text"
+              class="form-control"
+              formControlName="country"
+              [class.is-invalid]="isFieldInvalid('country')">
+            <p class="field-error" *ngIf="getFieldError('country', 'Country') as error">{{ error }}</p>
           </div>
         </div>
 
         <div class="mb-3">
           <label class="form-label">Key Skills</label>
-          <input type="text" class="form-control" formControlName="keySkills">
+          <input
+            type="text"
+            class="form-control"
+            formControlName="keySkills"
+            [class.is-invalid]="isFieldInvalid('keySkills')">
+          <p class="field-error" *ngIf="getFieldError('keySkills', 'Key skills') as error">{{ error }}</p>
         </div>
 
         <div class="row mb-4">
           <div class="col-md-6">
             <label class="form-label">Education</label>
-            <input type="text" class="form-control" formControlName="education">
+            <input
+              type="text"
+              class="form-control"
+              formControlName="education"
+              [class.is-invalid]="isFieldInvalid('education')">
+            <p class="field-error" *ngIf="getFieldError('education', 'Education') as error">{{ error }}</p>
           </div>
 
           <div class="col-md-6">
             <label class="form-label">Industry</label>
-            <input type="text" class="form-control" formControlName="industry">
+            <input
+              type="text"
+              class="form-control"
+              formControlName="industry"
+              [class.is-invalid]="isFieldInvalid('industry')">
+            <p class="field-error" *ngIf="getFieldError('industry', 'Industry') as error">{{ error }}</p>
           </div>
         </div>
 
@@ -124,34 +182,63 @@
         <div class="row mb-3">
           <div class="col-md-4">
             <label class="form-label">Min Salary</label>
-            <input type="number" class="form-control" formControlName="minSalary">
+            <input
+              type="number"
+              class="form-control"
+              formControlName="minSalary"
+              [class.is-invalid]="isFieldInvalid('minSalary')">
+            <p class="field-error" *ngIf="getFieldError('minSalary', 'Minimum salary') as error">{{ error }}</p>
           </div>
           <div class="col-md-4">
             <label class="form-label">Max Salary</label>
-            <input type="number" class="form-control" formControlName="maxSalary">
+            <input
+              type="number"
+              class="form-control"
+              formControlName="maxSalary"
+              [class.is-invalid]="isFieldInvalid('maxSalary')">
+            <p class="field-error" *ngIf="getFieldError('maxSalary', 'Maximum salary') as error">{{ error }}</p>
           </div>
           <div class="col-md-4">
             <label class="form-label">Currency</label>
-            <input type="text" class="form-control" formControlName="currency">
+            <input
+              type="text"
+              class="form-control"
+              formControlName="currency"
+              [class.is-invalid]="isFieldInvalid('currency')">
+            <p class="field-error" *ngIf="getFieldError('currency', 'Currency') as error">{{ error }}</p>
           </div>
         </div>
 
         <div class="mb-3">
           <label class="form-label">Salary Frequency</label>
-          <select class="form-select" formControlName="salaryFrequency">
+          <select
+            class="form-select"
+            formControlName="salaryFrequency"
+            [class.is-invalid]="isFieldInvalid('salaryFrequency')">
             <option value="Monthly">Monthly</option>
             <option value="Yearly">Yearly</option>
           </select>
+          <p class="field-error" *ngIf="getFieldError('salaryFrequency', 'Salary frequency') as error">{{ error }}</p>
         </div>
 
         <div class="row mb-3">
           <div class="col-md-6">
             <label class="form-label">Number of Openings</label>
-            <input type="number" class="form-control" formControlName="openings">
+            <input
+              type="number"
+              class="form-control"
+              formControlName="openings"
+              [class.is-invalid]="isFieldInvalid('openings')">
+            <p class="field-error" *ngIf="getFieldError('openings', 'Number of openings') as error">{{ error }}</p>
           </div>
           <div class="col-md-6">
             <label class="form-label">Expiry Date</label>
-            <input type="date" class="form-control" formControlName="expiryDate">
+            <input
+              type="date"
+              class="form-control"
+              formControlName="expiryDate"
+              [class.is-invalid]="isFieldInvalid('expiryDate')">
+            <p class="field-error" *ngIf="getFieldError('expiryDate', 'Expiry date') as error">{{ error }}</p>
           </div>
         </div>
 

@@ -12,7 +12,7 @@ namespace IdendityService.DTOs
 
         [Required]
         [MinLength(6)]
-        public string Password { get; set; }
+        public string <secret> { get; set; }
 
         [Required]
         public string UserType { get; set; }

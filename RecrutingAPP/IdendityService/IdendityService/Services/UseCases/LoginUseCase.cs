@@ -1,4 +1,4 @@
-using IdendityService.DTOs;
+﻿using IdendityService.DTOs;
 using IdendityService.Interfaces;
 using IdendityService.Interfaces.Auth;
 using IdendityService.Models;
@@ -25,8 +25,20 @@ namespace IdendityService.Services.UseCases
         {
             var user = await _userManager.FindByEmailAsync(req.Email);
 
-            if (user == null || !await _userManager.CheckPasswordAsync(user, req.Password))
+            if (user == null || !await _userManager.Check<secret>Async(user, req.<secret>))
                 throw new UnauthorizedAccessException("Invalid credentials");
+
+            if (!user.EmailConfirmed)
+                throw new UnauthorizedAccessException("Please confirm your email before logging in.");
+
+            // Self-heal legacy records where EmailConfirmed was set but EmailVerified was not.
+            if (!user.EmailVerified)
+            {
+                user.EmailVerified = true;
+                var updateResult = await _userManager.UpdateAsync(user);
+                if (!updateResult.Succeeded)
+                    throw new ApplicationException("Failed to sync email verification state.");
+            }
 
             if (!user.IsActive)
                 throw new UnauthorizedAccessException("Account is disabled. Contact admin.");
@@ -47,7 +59,7 @@ namespace IdendityService.Services.UseCases
                 user.FullName,
                 user.Email!,
                 roles.FirstOrDefault() ?? "JobSeeker",
-                user.ForcePasswordReset
+                user.Force<secret>Reset
             );
 
             return new AuthResponseDto.AuthResponse(

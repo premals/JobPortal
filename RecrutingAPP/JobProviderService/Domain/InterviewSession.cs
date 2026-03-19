@@ -23,8 +23,16 @@ namespace JobProviderService.Domain
 
         public List<string> Questions { get; set; } = new();
         public List<InterviewMessage> Transcript { get; set; } = new();
+        public List<InterviewResponse> Responses { get; set; } = new();
 
         public InterviewEvaluation? Evaluation { get; set; }
+
+        public DateTime? ScheduledStart { get; set; }
+        public DateTime? ScheduledEnd { get; set; }
+
+        public string? AutoDecisionStatus { get; set; }
+        public double? AutoDecisionScore { get; set; }
+        public DateTime? AutoDecisionAt { get; set; }
 
         // Video avatar hooks
         public string? AvatarProvider { get; set; }
@@ -54,5 +62,15 @@ namespace JobProviderService.Domain
         public string Skill { get; set; } = null!;
         public int Score { get; set; }
         public string Feedback { get; set; } = null!;
+    }
+
+    public class InterviewResponse
+    {
+        public int QuestionIndex { get; set; }
+        public string Question { get; set; } = string.Empty;
+        public string? AnswerText { get; set; }
+        public string? VideoUrl { get; set; }
+        public double DurationSeconds { get; set; }
+        public DateTime RecordedAt { get; set; } = DateTime.UtcNow;
     }
 }

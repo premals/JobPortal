@@ -11,17 +11,21 @@ namespace JobProviderService.Application.UseCases
         private readonly IJobRepository _jobs;
         private readonly IAiInterviewService _ai;
         private readonly IJobProviderSettingsRepository _settings;
+        private readonly UpdateApplicationStatusUseCase _applicationStatus;
+        private const double AutoDecisionThresholdPercent = 60.0;
 
         public InterviewSessionUseCase(
             IInterviewRepository interviews,
             IJobRepository jobs,
             IAiInterviewService ai,
-            IJobProviderSettingsRepository settings)
+            IJobProviderSettingsRepository settings,
+            UpdateApplicationStatusUseCase applicationStatus)
         {
             _interviews = interviews;
             _jobs = jobs;
             _ai = ai;
             _settings = settings;
+            _applicationStatus = applicationStatus;
         }
 
         public async Task<InterviewSession> AcceptInviteAsync(
@@ -35,6 +39,62 @@ namespace JobProviderService.Application.UseCases
             if (invite.JobSeekerId != seekerId)
                 throw new UnauthorizedAccessException("Not allowed");
 
+            return await AcceptInviteInternalAsync(invite, selectedSlot);
+        }
+
+        public async Task<InterviewSession> AcceptInviteByTokenAsync(string token, DateTime selectedSlot)
+        {
+            var invite = await _interviews.GetInviteByTokenAsync(token)
+                ?? throw new InvalidOperationException("Invite not found");
+
+            if (invite.TokenUsedAt.HasValue)
+                throw new InvalidOperationException("Invite token already used");
+
+            if (invite.TokenExpiresAt.HasValue && invite.TokenExpiresAt.Value < DateTime.UtcNow)
+                throw new InvalidOperationException("Invite token expired");
+
+            return await AcceptInviteInternalAsync(invite, selectedSlot);
+        }
+
+        public async Task<bool> MarkNoShowAsync(InterviewInvite invite, InterviewSession? session)
+        {
+            ArgumentNullException.ThrowIfNull(invite);
+
+            if (string.Equals(invite.Status, "Completed", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(invite.Status, "NoShow", StringComparison.OrdinalIgnoreCase)
+                || invite.TokenUsedAt.HasValue)
+            {
+                return false;
+            }
+
+            invite.Status = "NoShow";
+            invite.TokenUsedAt = DateTime.UtcNow;
+            await _interviews.UpdateInviteAsync(invite);
+
+            if (session != null && string.Equals(session.Status, "Scheduled", StringComparison.OrdinalIgnoreCase))
+            {
+                session.Status = "NoShow";
+                await _interviews.UpdateSessionAsync(session);
+            }
+
+            await _applicationStatus.ExecuteAsync(
+                invite.JobId,
+                invite.JobSeekerId,
+                invite.JobProviderId,
+                "Rejected");
+
+            return true;
+        }
+
+        private async Task<InterviewSession> AcceptInviteInternalAsync(InterviewInvite invite, DateTime selectedSlot)
+        {
+            if (string.Equals(invite.Status, "Accepted", StringComparison.OrdinalIgnoreCase))
+            {
+                var existing = await _interviews.GetSessionByInviteIdAsync(invite.Id);
+                if (existing != null)
+                    return existing;
+            }
+
             invite.Status = "Accepted";
             invite.SelectedSlot = selectedSlot;
             await _interviews.UpdateInviteAsync(invite);
@@ -45,22 +105,32 @@ namespace JobProviderService.Application.UseCases
             var settings = await _settings.GetOrCreateAsync(invite.JobProviderId);
             var aiConfig = new AiRuntimeConfig
             {
+                Provider = settings.Ai.Provider,
                 Endpoint = settings.Ai.Endpoint,
                 Deployment = settings.Ai.Deployment,
                 ApiVersion = settings.Ai.ApiVersion
             };
 
-            var questions = settings.Ai.EnableInterviewAi
-                ? await _ai.GenerateInterviewQuestionsAsync(
-                    skills,
-                    invite.Difficulty,
-                    invite.QuestionsCount,
-                    aiConfig)
-                : new List<string>
-                {
-                    "Tell us about your most relevant project.",
-                    "What challenges did you face and how did you solve them?"
-                };
+            var customQuestions = invite.CustomQuestions?.Where(q => !string.IsNullOrWhiteSpace(q)).ToList()
+                ?? new List<string>();
+
+            var questions = customQuestions.Count > 0
+                ? customQuestions
+                : settings.Ai.EnableInterviewAi
+                    ? await _ai.GenerateInterviewQuestionsAsync(
+                        skills,
+                        invite.Difficulty,
+                        invite.QuestionsCount,
+                        aiConfig)
+                    : new List<string>
+                    {
+                        "Tell us about your most relevant project.",
+                        "What challenges did you face and how did you solve them?"
+                    };
+
+            var avatarProvider = (settings.Ai.EnableAvatar || !string.IsNullOrWhiteSpace(settings.Ai.AvatarProvider))
+                ? settings.Ai.AvatarProvider
+                : null;
 
             var session = new InterviewSession
             {
@@ -72,7 +142,10 @@ namespace JobProviderService.Application.UseCases
                 Skills = skills,
                 Status = "Scheduled",
                 TotalQuestions = questions.Count,
-                Questions = questions
+                Questions = questions,
+                ScheduledStart = invite.SelectedSlot,
+                ScheduledEnd = invite.SelectedSlot?.AddMinutes(settings.Interview.SlotDurationMinutes),
+                AvatarProvider = avatarProvider
             };
 
             await _interviews.CreateSessionAsync(session);
@@ -129,6 +202,7 @@ namespace JobProviderService.Application.UseCases
                 var settings = await _settings.GetOrCreateAsync(session.JobProviderId);
                 var aiConfig = new AiRuntimeConfig
                 {
+                    Provider = settings.Ai.Provider,
                     Endpoint = settings.Ai.Endpoint,
                     Deployment = settings.Ai.Deployment,
                     ApiVersion = settings.Ai.ApiVersion
@@ -151,6 +225,29 @@ namespace JobProviderService.Application.UseCases
                             Feedback = "Manual review needed."
                         }).ToList()
                     };
+
+                if (settings.Ai.EnableInterviewAi && session.Evaluation != null && string.IsNullOrWhiteSpace(session.AutoDecisionStatus))
+                {
+                    var percentScore = session.Evaluation.OverallScore * 10.0;
+                    var targetStatus = percentScore >= AutoDecisionThresholdPercent ? "Shortlisted" : "Rejected";
+                    await _applicationStatus.ExecuteAsync(
+                        session.JobId,
+                        session.JobSeekerId,
+                        session.JobProviderId,
+                        targetStatus);
+
+                    session.AutoDecisionStatus = targetStatus;
+                    session.AutoDecisionScore = percentScore;
+                    session.AutoDecisionAt = DateTime.UtcNow;
+                }
+
+                var invite = await _interviews.GetInviteAsync(session.InviteId);
+                if (invite != null && !invite.TokenUsedAt.HasValue)
+                {
+                    invite.TokenUsedAt = DateTime.UtcNow;
+                    invite.Status = "Completed";
+                    await _interviews.UpdateInviteAsync(invite);
+                }
             }
 
             await _interviews.UpdateSessionAsync(session);

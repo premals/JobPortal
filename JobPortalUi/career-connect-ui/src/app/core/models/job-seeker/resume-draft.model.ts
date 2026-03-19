@@ -17,6 +17,8 @@ export interface ResumeDraft {
   location?: string;
   summary?: string;
   skills: string[];
+  experienceYears?: number;
+  education?: string;
   workHistory: WorkExperience[];
   educationHistory: EducationRecord[];
   projects: ProjectRecord[];

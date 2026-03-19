@@ -1,8 +1,8 @@
 ﻿namespace IdendityService.DTOs
 {
-    public class ForgotPasswordRequestDto
+    public class Forgot<secret>RequestDto
     {
-        public record ForgotPasswordRequest(string Email);
+        public record Forgot<secret>Request(string Email);
 
 
     }

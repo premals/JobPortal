@@ -24,8 +24,8 @@ namespace JobSeekerService.Infrastructure.Messaging.RabbitMq
             {
                 HostName = rabbitConfig["Host"] ?? "localhost",
                 Port = int.Parse(rabbitConfig["Port"] ?? "5672"),
-                UserName = rabbitConfig["Username"] ?? "guest",
-                Password = rabbitConfig["Password"] ?? "guest"
+                UserName = rabbitConfig["UserName"] ?? rabbitConfig["Username"] ?? "guest",
+                <secret> = rabbitConfig["<secret>"] ?? "guest"
             };
 
             _connection = factory.CreateConnection();

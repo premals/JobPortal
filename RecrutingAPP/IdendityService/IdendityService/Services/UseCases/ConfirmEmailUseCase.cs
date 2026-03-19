@@ -19,9 +19,23 @@ namespace IdendityService.Services.UseCases
             if (user == null)
                 throw new ApplicationException("Invalid user");
 
-            var result = await _userManager.ConfirmEmailAsync(user, token);
-            if (!result.Succeeded)
-                throw new ApplicationException("Email confirmation failed");
+            if (!user.EmailConfirmed)
+            {
+                var result = await _userManager.ConfirmEmailAsync(user, token);
+                if (!result.Succeeded)
+                    throw new ApplicationException("Email confirmation failed");
+            }
+
+            // Keep custom flag in sync with Identity's EmailConfirmed state.
+            if (!user.EmailVerified || !user.EmailConfirmed)
+            {
+                user.EmailConfirmed = true;
+                user.EmailVerified = true;
+
+                var updateResult = await _userManager.UpdateAsync(user);
+                if (!updateResult.Succeeded)
+                    throw new ApplicationException("Email confirmation state update failed");
+            }
         }
     }
 }

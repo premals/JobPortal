@@ -1,10 +1,10 @@
 <section class="resume-ai">
   <div class="hero">
     <div class="hero-text">
-      <p class="eyebrow">AI Resume Studio</p>
-      <h1>Turn your resume into a polished, recruiter-ready story.</h1>
+      <p class="eyebrow">Resume Builder</p>
+      <h1>Build a recruiter-ready resume that tells your story.</h1>
       <p class="hero-sub">
-        Upload, parse, and preview professional templates tailored to your experience.
+        Upload, parse, and shape every section in one place.
       </p>
       <div class="hero-actions">
         <button class="ai-btn primary" (click)="useProfileData()">
@@ -70,7 +70,7 @@
       <div class="card">
         <div class="card-head">
           <h3>Quick edits</h3>
-          <p>Fine-tune your summary and headline instantly.</p>
+          <p>Update your essentials before polishing details.</p>
         </div>
         <div class="form-grid">
           <label>Full name</label>
@@ -83,6 +83,10 @@
           <input class="input" [(ngModel)]="draft.phone" placeholder="Phone number">
           <label>Location</label>
           <input class="input" [(ngModel)]="draft.location" placeholder="City, Country">
+          <label>Experience (years)</label>
+          <input class="input" type="number" min="0" [(ngModel)]="draft.experienceYears" placeholder="e.g. 4">
+          <label>Education (summary)</label>
+          <input class="input" [(ngModel)]="draft.education" placeholder="e.g. B.Tech Computer Science">
         </div>
         <label class="toggle-row">
           <input type="checkbox" [(ngModel)]="draft.atsFriendly" (change)="saveDraft()">
@@ -105,6 +109,123 @@
             <button type="button" (click)="removeSkill(i)">&times;</button>
           </span>
         </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head card-head-row">
+          <div>
+            <h3>Experience</h3>
+            <p>Add roles, timelines, and impact.</p>
+          </div>
+          <button class="ai-btn subtle" (click)="addWork()">Add</button>
+        </div>
+        <div class="repeat-card" *ngFor="let work of draft.workHistory; let i = index">
+          <div class="repeat-header">
+            <strong>Role {{ i + 1 }}</strong>
+            <button class="link-btn" type="button" (click)="removeWork(i)">Remove</button>
+          </div>
+          <div class="form-row">
+            <input class="input" placeholder="Company" [(ngModel)]="work.company">
+            <input class="input" placeholder="Role" [(ngModel)]="work.role">
+          </div>
+          <div class="form-row">
+            <input class="input" placeholder="Start (e.g. 2021)" [(ngModel)]="work.startDate">
+            <input class="input" placeholder="End (e.g. 2024)" [(ngModel)]="work.endDate">
+          </div>
+          <textarea class="input textarea" rows="3" placeholder="Key impact" [(ngModel)]="work.description"></textarea>
+        </div>
+        <p class="muted" *ngIf="!draft.workHistory.length">Add your most relevant roles and achievements.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-head card-head-row">
+          <div>
+            <h3>Education</h3>
+            <p>Highlight degrees and coursework.</p>
+          </div>
+          <button class="ai-btn subtle" (click)="addEducation()">Add</button>
+        </div>
+        <div class="repeat-card" *ngFor="let edu of draft.educationHistory; let i = index">
+          <div class="repeat-header">
+            <strong>Education {{ i + 1 }}</strong>
+            <button class="link-btn" type="button" (click)="removeEducation(i)">Remove</button>
+          </div>
+          <div class="form-row">
+            <input class="input" placeholder="School" [(ngModel)]="edu.school">
+            <input class="input" placeholder="Degree" [(ngModel)]="edu.degree">
+          </div>
+          <div class="form-row">
+            <input class="input" placeholder="Field" [(ngModel)]="edu.field">
+            <input class="input" placeholder="Year" [(ngModel)]="edu.graduationYear">
+          </div>
+        </div>
+        <p class="muted" *ngIf="!draft.educationHistory.length">Add your academic background.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-head card-head-row">
+          <div>
+            <h3>Projects</h3>
+            <p>Showcase standout work.</p>
+          </div>
+          <button class="ai-btn subtle" (click)="addProject()">Add</button>
+        </div>
+        <div class="repeat-card" *ngFor="let project of draft.projects; let i = index">
+          <div class="repeat-header">
+            <strong>Project {{ i + 1 }}</strong>
+            <button class="link-btn" type="button" (click)="removeProject(i)">Remove</button>
+          </div>
+          <div class="form-row">
+            <input class="input" placeholder="Project name" [(ngModel)]="project.name">
+            <input class="input" placeholder="Role" [(ngModel)]="project.role">
+          </div>
+          <textarea class="input textarea" rows="3" placeholder="Description" [(ngModel)]="project.description"></textarea>
+          <input class="input" placeholder="Link" [(ngModel)]="project.link">
+        </div>
+        <p class="muted" *ngIf="!draft.projects.length">Add projects that prove your skills.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-head card-head-row">
+          <div>
+            <h3>Certifications</h3>
+            <p>Include credentials and licenses.</p>
+          </div>
+          <button class="ai-btn subtle" (click)="addCertification()">Add</button>
+        </div>
+        <div class="repeat-card" *ngFor="let cert of draft.certifications; let i = index">
+          <div class="repeat-header">
+            <strong>Certification {{ i + 1 }}</strong>
+            <button class="link-btn" type="button" (click)="removeCertification(i)">Remove</button>
+          </div>
+          <div class="form-row">
+            <input class="input" placeholder="Name" [(ngModel)]="cert.name">
+            <input class="input" placeholder="Issuer" [(ngModel)]="cert.issuer">
+          </div>
+          <input class="input" placeholder="Year" [(ngModel)]="cert.year">
+        </div>
+        <p class="muted" *ngIf="!draft.certifications.length">Add relevant certifications.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-head card-head-row">
+          <div>
+            <h3>Languages</h3>
+            <p>List spoken or written languages.</p>
+          </div>
+          <button class="ai-btn subtle" (click)="addLanguage()">Add</button>
+        </div>
+        <div class="repeat-card" *ngFor="let lang of draft.languages; let i = index">
+          <div class="repeat-header">
+            <strong>Language {{ i + 1 }}</strong>
+            <button class="link-btn" type="button" (click)="removeLanguage(i)">Remove</button>
+          </div>
+          <div class="form-row">
+            <input class="input" placeholder="Language" [(ngModel)]="lang.name">
+            <input class="input" placeholder="Proficiency" [(ngModel)]="lang.proficiency">
+          </div>
+        </div>
+        <p class="muted" *ngIf="!draft.languages.length">Add language proficiency.</p>
       </div>
 
       <div class="card">
@@ -184,14 +305,15 @@
               </div>
             </section>
 
-            <section class="section education" *ngIf="draft.educationHistory.length > 0">
+            <section class="section education" *ngIf="draft.educationHistory.length > 0 || draft.education">
               <h4>Education</h4>
-              <div class="list">
+              <div class="list" *ngIf="draft.educationHistory.length > 0">
                 <div class="list-item" *ngFor="let edu of draft.educationHistory">
                   <div class="list-title">{{ edu.degree }} &middot; {{ edu.field }}</div>
                   <div class="list-meta">{{ edu.school }} &bull; {{ edu.graduationYear }}</div>
                 </div>
               </div>
+              <p *ngIf="!draft.educationHistory.length">{{ draft.education }}</p>
             </section>
 
             <section class="section projects" *ngIf="draft.projects.length > 0">
@@ -201,6 +323,26 @@
                   <div class="list-title">{{ project.name }}</div>
                   <div class="list-meta">{{ project.role }}</div>
                   <p>{{ project.description }}</p>
+                </div>
+              </div>
+            </section>
+
+            <section class="section certifications" *ngIf="draft.certifications.length > 0">
+              <h4>Certifications</h4>
+              <div class="list">
+                <div class="list-item" *ngFor="let cert of draft.certifications">
+                  <div class="list-title">{{ cert.name }}</div>
+                  <div class="list-meta">{{ cert.issuer }} &middot; {{ cert.year }}</div>
+                </div>
+              </div>
+            </section>
+
+            <section class="section languages" *ngIf="draft.languages.length > 0">
+              <h4>Languages</h4>
+              <div class="list">
+                <div class="list-item" *ngFor="let lang of draft.languages">
+                  <div class="list-title">{{ lang.name }}</div>
+                  <div class="list-meta">{{ lang.proficiency }}</div>
                 </div>
               </div>
             </section>

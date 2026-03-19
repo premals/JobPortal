@@ -1,15 +1,14 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { JobSeekerProfile } from '../../models/job-seeker/job-seeker-profile.model';
-import { ResumeParseResult } from '../../models/job-seeker/resume-parse-result.model';
 import { JobSeekerProfileService } from '../../services/job-seeker-profile.service';
 import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-profile-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule],
   template: `
     <div class="modal-overlay" (click)="closeModal()">
       <div class="modal-shell" (click)="$event.stopPropagation()">
@@ -62,6 +61,10 @@ import { ToastService } from '../../services/toast.service';
                 <div class="info-row">
                   <span>Phone</span>
                   <strong>{{ profile.phone || '-' }}</strong>
+                </div>
+                <div class="info-row">
+                  <span>Gender</span>
+                  <strong>{{ profile.gender || '-' }}</strong>
                 </div>
                 <div class="info-row">
                   <span>Location</span>
@@ -154,217 +157,49 @@ import { ToastService } from '../../services/toast.service';
             </div>
 
             <div *ngIf="mode === 'edit'" class="edit-grid">
-              <section class="form-section mode-section">
-                <div class="section-header">
-                  <div>
-                    <h3>Edit Mode</h3>
-                    <p class="muted">Choose how you want to update your profile.</p>
-                  </div>
-                </div>
-                <div class="mode-toggle">
-                  <button
-                    type="button"
-                    class="mode-chip"
-                    [class.active]="editSource === 'manual'"
-                    (click)="setEditSource('manual')">
-                    Manual Edit
-                  </button>
-                  <button
-                    type="button"
-                    class="mode-chip"
-                    [class.active]="editSource === 'import'"
-                    (click)="setEditSource('import')">
-                    Import Resume
-                  </button>
-                </div>
-              </section>
-
-              <section class="form-section import-section" *ngIf="editSource === 'import'">
-                <div class="section-header">
-                  <div>
-                    <h3>Import Resume</h3>
-                    <p class="muted">Upload a text resume or paste content to auto-fill your profile.</p>
-                  </div>
-                </div>
-                <div class="import-grid">
-                  <div class="import-card">
-                    <label class="import-label">Upload Resume (.txt, .md, .pdf, .docx)</label>
-                    <input
-                      type="file"
-                      accept=".txt,.md,.pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
-                      (change)="onResumeFileSelected($event)">
-                    <p class="import-file" *ngIf="resumeFileName">{{ resumeFileName }}</p>
-                    <p class="import-hint">PDF and Word files will be parsed on the server.</p>
-                  </div>
-                  <div class="import-card">
-                    <label class="import-label">Paste Resume Text</label>
-                    <textarea
-                      class="form-control"
-                      rows="6"
-                      [(ngModel)]="resumeText"
-                      placeholder="Paste resume content here..."></textarea>
-                  </div>
-                </div>
-                <div class="import-actions">
-                  <span class="import-error" *ngIf="importError">{{ importError }}</span>
-                  <button type="button" class="btn btn-primary" (click)="applyResumeImport()" [disabled]="isParsingResume">
-                    {{ isParsingResume ? 'Importing...' : 'Auto-fill Profile' }}
-                  </button>
-                </div>
-              </section>
               <section class="form-section">
-                <h3>Personal Information</h3>
+                <h3>Basic Information</h3>
                 <div class="form-row">
                   <div>
                     <label>Full Name *</label>
-                    <input type="text" [(ngModel)]="editProfile.fullName" class="form-control">
+                    <input
+                      type="text"
+                      name="fullName"
+                      required
+                      [(ngModel)]="editProfile.fullName"
+                      class="form-control"
+                      #fullName="ngModel"
+                      [class.is-invalid]="fullName.invalid && (fullName.touched || formSubmitted)">
+                    <p class="field-error" *ngIf="fullName.invalid && (fullName.touched || formSubmitted)">
+                      Full name is required
+                    </p>
                   </div>
                   <div>
                     <label>Email *</label>
-                    <input type="email" [(ngModel)]="editProfile.email" class="form-control" disabled>
+                    <input
+                      type="email"
+                      name="email"
+                      [(ngModel)]="editProfile.email"
+                      class="form-control"
+                      disabled>
                   </div>
+                </div>
+                <div class="form-row">
                   <div>
                     <label>Phone</label>
-                    <input type="tel" [(ngModel)]="editProfile.phone" class="form-control">
-                  </div>
-                </div>
-                <div class="form-row">
-                  <div>
-                    <label>Headline</label>
-                    <input type="text" [(ngModel)]="editProfile.headline" class="form-control">
+                    <input
+                      type="tel"
+                      name="phone"
+                      [(ngModel)]="editProfile.phone"
+                      class="form-control">
                   </div>
                   <div>
-                    <label>Location</label>
-                    <input type="text" [(ngModel)]="editProfile.location" class="form-control">
-                  </div>
-                  <div>
-                    <label>Experience (Years)</label>
-                    <input type="number" [(ngModel)]="editProfile.experienceYears" class="form-control">
-                  </div>
-                </div>
-              </section>
-
-              <section class="form-section">
-                <h3>Professional Summary</h3>
-                <textarea [(ngModel)]="editProfile.summary" class="form-control" rows="4"></textarea>
-              </section>
-
-              <section class="form-section">
-                <h3>Skills</h3>
-                <textarea [(ngModel)]="skillsInput" class="form-control" rows="3" placeholder="Comma-separated skills"></textarea>
-              </section>
-
-              <section class="form-section">
-                <div class="section-header">
-                  <h3>Work History</h3>
-                  <button type="button" class="btn-secondary" (click)="addWork()">Add</button>
-                </div>
-                <div *ngFor="let work of editProfile.workHistory; let i = index" class="repeat-card">
-                  <div class="repeat-header">
-                    <strong>Role {{ i + 1 }}</strong>
-                    <button type="button" class="btn-danger-small" (click)="removeWork(i)">Remove</button>
-                  </div>
-                  <div class="form-row">
-                    <input class="form-control" placeholder="Company" [(ngModel)]="work.company">
-                    <input class="form-control" placeholder="Role" [(ngModel)]="work.role">
-                  </div>
-                  <div class="form-row">
-                    <input class="form-control" placeholder="Start (e.g. 2021)" [(ngModel)]="work.startDate">
-                    <input class="form-control" placeholder="End (e.g. 2024)" [(ngModel)]="work.endDate">
-                  </div>
-                  <textarea class="form-control" rows="2" placeholder="Key impact" [(ngModel)]="work.description"></textarea>
-                </div>
-              </section>
-
-              <section class="form-section">
-                <div class="section-header">
-                  <h3>Education</h3>
-                  <button type="button" class="btn-secondary" (click)="addEducation()">Add</button>
-                </div>
-                <div *ngFor="let edu of editProfile.educationHistory; let i = index" class="repeat-card">
-                  <div class="repeat-header">
-                    <strong>Education {{ i + 1 }}</strong>
-                    <button type="button" class="btn-danger-small" (click)="removeEducation(i)">Remove</button>
-                  </div>
-                  <div class="form-row">
-                    <input class="form-control" placeholder="School" [(ngModel)]="edu.school">
-                    <input class="form-control" placeholder="Degree" [(ngModel)]="edu.degree">
-                  </div>
-                  <div class="form-row">
-                    <input class="form-control" placeholder="Field" [(ngModel)]="edu.field">
-                    <input class="form-control" placeholder="Year" [(ngModel)]="edu.graduationYear">
-                  </div>
-                </div>
-              </section>
-
-              <section class="form-section">
-                <div class="section-header">
-                  <h3>Projects</h3>
-                  <button type="button" class="btn-secondary" (click)="addProject()">Add</button>
-                </div>
-                <div *ngFor="let project of editProfile.projects; let i = index" class="repeat-card">
-                  <div class="repeat-header">
-                    <strong>Project {{ i + 1 }}</strong>
-                    <button type="button" class="btn-danger-small" (click)="removeProject(i)">Remove</button>
-                  </div>
-                  <div class="form-row">
-                    <input class="form-control" placeholder="Project name" [(ngModel)]="project.name">
-                    <input class="form-control" placeholder="Role" [(ngModel)]="project.role">
-                  </div>
-                  <textarea class="form-control" rows="2" placeholder="Description" [(ngModel)]="project.description"></textarea>
-                  <input class="form-control" placeholder="Link" [(ngModel)]="project.link">
-                </div>
-              </section>
-
-              <section class="form-section">
-                <div class="section-header">
-                  <h3>Certifications</h3>
-                  <button type="button" class="btn-secondary" (click)="addCertification()">Add</button>
-                </div>
-                <div *ngFor="let cert of editProfile.certifications; let i = index" class="repeat-card">
-                  <div class="repeat-header">
-                    <strong>Certification {{ i + 1 }}</strong>
-                    <button type="button" class="btn-danger-small" (click)="removeCertification(i)">Remove</button>
-                  </div>
-                  <div class="form-row">
-                    <input class="form-control" placeholder="Name" [(ngModel)]="cert.name">
-                    <input class="form-control" placeholder="Issuer" [(ngModel)]="cert.issuer">
-                    <input class="form-control" placeholder="Year" [(ngModel)]="cert.year">
-                  </div>
-                </div>
-              </section>
-
-              <section class="form-section">
-                <div class="section-header">
-                  <h3>Languages</h3>
-                  <button type="button" class="btn-secondary" (click)="addLanguage()">Add</button>
-                </div>
-                <div *ngFor="let lang of editProfile.languages; let i = index" class="repeat-card">
-                  <div class="repeat-header">
-                    <strong>Language {{ i + 1 }}</strong>
-                    <button type="button" class="btn-danger-small" (click)="removeLanguage(i)">Remove</button>
-                  </div>
-                  <div class="form-row">
-                    <input class="form-control" placeholder="Language" [(ngModel)]="lang.name">
-                    <input class="form-control" placeholder="Proficiency" [(ngModel)]="lang.proficiency">
-                  </div>
-                </div>
-              </section>
-
-              <section class="form-section">
-                <h3>Resume Settings</h3>
-                <div class="form-row">
-                  <div>
-                    <label>Template</label>
-                    <select class="form-select" [(ngModel)]="editProfile.resumeSettings.template">
-                      <option value="Clean">Clean</option>
-                      <option value="Classic">Classic</option>
-                      <option value="Modern">Modern</option>
-                    </select>
-                  </div>
-                  <div class="toggle">
-                    <label>ATS Friendly</label>
-                    <input type="checkbox" [(ngModel)]="editProfile.resumeSettings.atsFriendly">
+                    <label>Gender</label>
+                    <input
+                      type="text"
+                      name="gender"
+                      [(ngModel)]="editProfile.gender"
+                      class="form-control">
                   </div>
                 </div>
               </section>
@@ -719,6 +554,18 @@ import { ToastService } from '../../services/toast.service';
       background: #ffffff;
     }
 
+    .form-control.is-invalid,
+    .form-select.is-invalid {
+      border-color: #ef4444;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+    }
+
+    .field-error {
+      color: #dc2626;
+      font-size: 0.75rem;
+      margin: 6px 0 0;
+    }
+
     .repeat-card {
       background: #ffffff;
       border-radius: 14px;
@@ -804,15 +651,9 @@ export class ProfileModalComponent implements OnInit {
   mode: 'view' | 'edit' = 'view';
   profile: JobSeekerProfile = this.getEmptyProfile();
   editProfile: JobSeekerProfile = this.getEmptyProfile();
-  skillsInput = '';
-  editSource: 'manual' | 'import' = 'manual';
-  resumeText = '';
-  resumeFileName = '';
-  resumeFile: File | null = null;
-  importError = '';
-  isParsingResume = false;
   isSaving = false;
   isLoading = true;
+  formSubmitted = false;
 
   constructor(
     private jobSeekerService: JobSeekerProfileService,
@@ -829,7 +670,6 @@ export class ProfileModalComponent implements OnInit {
       next: (profile) => {
         this.profile = this.normalizeProfile(profile);
         this.editProfile = JSON.parse(JSON.stringify(this.profile));
-        this.skillsInput = this.profile.skills?.join(', ') ?? '';
         this.isLoading = false;
       },
       error: () => {
@@ -841,101 +681,22 @@ export class ProfileModalComponent implements OnInit {
 
   editMode(): void {
     this.mode = 'edit';
-    this.editSource = 'manual';
-  }
-
-  setEditSource(source: 'manual' | 'import'): void {
-    this.editSource = source;
-    if (source === 'manual') {
-      this.importError = '';
-    }
-  }
-
-  onResumeFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-
-    const lowerName = file.name.toLowerCase();
-    const isTextType = file.type?.startsWith('text/');
-    const isTextExt = lowerName.endsWith('.txt') || lowerName.endsWith('.md');
-    const isPdf = lowerName.endsWith('.pdf');
-    const isDocx = lowerName.endsWith('.docx');
-
-    if (!isTextType && !isTextExt && !isPdf && !isDocx) {
-      this.importError = 'Please upload a .txt, .md, .pdf, or .docx file.';
-      return;
-    }
-
-    this.resumeFileName = file.name;
-    this.resumeFile = file;
-    this.importError = '';
-
-    if (isTextType || isTextExt) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        this.resumeText = String(reader.result ?? '');
-      };
-      reader.onerror = () => {
-        this.importError = 'Unable to read the resume file. Please paste the text instead.';
-      };
-      reader.readAsText(file);
-    } else {
-      this.resumeText = '';
-    }
-  }
-
-  applyResumeImport(): void {
-    this.isParsingResume = true;
-    this.importError = '';
-
-    if (this.resumeFile && !this.isTextResume(this.resumeFile)) {
-      this.jobSeekerService.parseResumeFile(this.resumeFile).subscribe({
-        next: (parsed) => {
-          this.mergeImportedProfile(parsed);
-          this.isParsingResume = false;
-          this.toastService.show('Resume imported. Please review the fields.');
-        },
-        error: () => {
-          this.isParsingResume = false;
-          this.importError = 'Unable to parse the resume file. Please try a different file.';
-        }
-      });
-      return;
-    }
-
-    const text = this.resumeText.trim();
-    if (!text) {
-      this.isParsingResume = false;
-      this.importError = 'Paste resume text or upload a resume before importing.';
-      return;
-    }
-
-    this.jobSeekerService.parseResume(text).subscribe({
-      next: (parsed) => {
-        this.mergeImportedProfile(parsed);
-        this.isParsingResume = false;
-        this.toastService.show('Resume imported. Please review the fields.');
-      },
-      error: () => {
-        this.isParsingResume = false;
-        this.importError = 'Unable to parse the resume. Please try again or update manually.';
-      }
-    });
+    this.formSubmitted = false;
   }
 
   saveProfile(): void {
-    this.isSaving = true;
-    this.editProfile.skills = this.skillsInput
-      .split(',')
-      .map(x => x.trim())
-      .filter(Boolean);
+    this.formSubmitted = true;
+    if (!this.editProfile.fullName?.trim()) {
+      return;
+    }
 
+    this.isSaving = true;
     this.jobSeekerService.updateProfile(this.editProfile).subscribe({
       next: () => {
         this.profile = JSON.parse(JSON.stringify(this.editProfile));
         this.mode = 'view';
         this.isSaving = false;
+        this.formSubmitted = false;
         this.toastService.show('Profile updated successfully');
       },
       error: () => {
@@ -947,108 +708,6 @@ export class ProfileModalComponent implements OnInit {
 
   closeModal(): void {
     this.closed.emit();
-  }
-
-  addWork(): void {
-    this.editProfile.workHistory.push({
-      company: '',
-      role: '',
-      startDate: '',
-      endDate: '',
-      description: '',
-      skills: []
-    });
-  }
-
-  removeWork(index: number): void {
-    this.editProfile.workHistory.splice(index, 1);
-  }
-
-  addEducation(): void {
-    this.editProfile.educationHistory.push({
-      school: '',
-      degree: '',
-      field: '',
-      graduationYear: ''
-    });
-  }
-
-  removeEducation(index: number): void {
-    this.editProfile.educationHistory.splice(index, 1);
-  }
-
-  addProject(): void {
-    this.editProfile.projects.push({
-      name: '',
-      role: '',
-      description: '',
-      link: ''
-    });
-  }
-
-  removeProject(index: number): void {
-    this.editProfile.projects.splice(index, 1);
-  }
-
-  addCertification(): void {
-    this.editProfile.certifications.push({
-      name: '',
-      issuer: '',
-      year: ''
-    });
-  }
-
-  removeCertification(index: number): void {
-    this.editProfile.certifications.splice(index, 1);
-  }
-
-  addLanguage(): void {
-    this.editProfile.languages.push({
-      name: '',
-      proficiency: ''
-    });
-  }
-
-  removeLanguage(index: number): void {
-    this.editProfile.languages.splice(index, 1);
-  }
-
-  private isTextResume(file: File): boolean {
-    const lowerName = file.name.toLowerCase();
-    return file.type?.startsWith('text/')
-      || lowerName.endsWith('.txt')
-      || lowerName.endsWith('.md');
-  }
-
-  private mergeImportedProfile(parsed: ResumeParseResult): void {
-    if (parsed.fullName) this.editProfile.fullName = parsed.fullName;
-    if (parsed.email) this.editProfile.email = parsed.email;
-    if (parsed.phone) this.editProfile.phone = parsed.phone;
-    if (parsed.headline) this.editProfile.headline = parsed.headline;
-    if (parsed.summary) this.editProfile.summary = parsed.summary;
-    if (typeof parsed.experienceYears === 'number' && !Number.isNaN(parsed.experienceYears)) {
-      this.editProfile.experienceYears = parsed.experienceYears;
-    }
-    if (parsed.education) this.editProfile.education = parsed.education;
-    if (parsed.skills && parsed.skills.length > 0) {
-      this.editProfile.skills = parsed.skills;
-      this.skillsInput = parsed.skills.join(', ');
-    }
-    if (parsed.workHistory && parsed.workHistory.length > 0) {
-      this.editProfile.workHistory = parsed.workHistory;
-    }
-    if (parsed.educationHistory && parsed.educationHistory.length > 0) {
-      this.editProfile.educationHistory = parsed.educationHistory;
-    }
-    if (parsed.projects && parsed.projects.length > 0) {
-      this.editProfile.projects = parsed.projects;
-    }
-    if (parsed.certifications && parsed.certifications.length > 0) {
-      this.editProfile.certifications = parsed.certifications;
-    }
-    if (parsed.languages && parsed.languages.length > 0) {
-      this.editProfile.languages = parsed.languages;
-    }
   }
 
   private normalizeProfile(profile: JobSeekerProfile): JobSeekerProfile {
@@ -1071,6 +730,7 @@ export class ProfileModalComponent implements OnInit {
       fullName: '',
       email: '',
       phone: '',
+      gender: '',
       headline: '',
       summary: '',
       location: '',

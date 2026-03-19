@@ -5,7 +5,6 @@ using JobSeekerService.Domain.Constants;
 using JobSeekerService.Domain.Entities;
 using JobSeekerService.Infrastructure.Mongo;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -42,7 +41,7 @@ namespace JobSeekerService.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var seekerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var seekerId = ResolveUserId();
             if (string.IsNullOrEmpty(seekerId))
                 return Unauthorized();
 
@@ -50,7 +49,20 @@ namespace JobSeekerService.Controllers
                 .GetByUserIdAsync(seekerId);
 
             if (seeker == null)
-                return NotFound("Job seeker profile not found");
+            {
+                // Create profile lazily so apply does not fail when profile sync is delayed.
+                seeker = new JobSeekerProfile
+                {
+                    UserId = seekerId,
+                    FullName = User.FindFirstValue("name")
+                        ?? User.FindFirstValue(ClaimTypes.Name)
+                        ?? string.Empty,
+                    Email = User.FindFirstValue("email")
+                        ?? User.FindFirstValue(ClaimTypes.Email)
+                        ?? string.Empty
+                };
+                await _jobSeekerRepository.CreateAsync(seeker);
+            }
 
             await _applyJobUseCase.ExecuteAsync(request, seeker);
 
@@ -64,7 +76,7 @@ namespace JobSeekerService.Controllers
         [HttpGet]
         public async Task<IActionResult> MyApplications()
         {
-            var seekerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var seekerId = ResolveUserId();
             if (string.IsNullOrEmpty(seekerId))
                 return Unauthorized();
 
@@ -79,7 +91,7 @@ namespace JobSeekerService.Controllers
         [HttpGet("{jobId}")]
         public async Task<IActionResult> GetStatus(string jobId)
         {
-            var seekerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var seekerId = ResolveUserId();
             if (string.IsNullOrEmpty(seekerId))
                 return Unauthorized();
 
@@ -102,7 +114,7 @@ namespace JobSeekerService.Controllers
         [HttpPost("{jobId}/withdraw")]
         public async Task<IActionResult> Withdraw(string jobId)
         {
-            var seekerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var seekerId = ResolveUserId();
             if (string.IsNullOrEmpty(seekerId))
                 return Unauthorized();
 
@@ -129,7 +141,7 @@ namespace JobSeekerService.Controllers
             string jobId,
             [FromQuery] string status)
         {
-            var seekerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var seekerId = ResolveUserId();
             if (string.IsNullOrEmpty(seekerId))
                 return Unauthorized();
 
@@ -141,6 +153,13 @@ namespace JobSeekerService.Controllers
             await _repository.UpdateAsync(application);
 
             return Ok(new { message = $"Application status updated to {status}" });
+        }
+
+        private string? ResolveUserId()
+        {
+            return User.FindFirstValue(ClaimTypes.NameIdentifier)
+                ?? User.FindFirstValue("userId")
+                ?? User.FindFirstValue("sub");
         }
     }
 }

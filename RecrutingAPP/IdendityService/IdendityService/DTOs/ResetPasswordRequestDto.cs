@@ -1,8 +1,8 @@
 ﻿namespace IdendityService.DTOs
 {
-    public class ResetPasswordRequestDto
+    public class Reset<secret>RequestDto
     {
-        public record ResetPasswordRequest(string Email, string Token, string NewPassword);
+        public record Reset<secret>Request(string Email, string Token, string New<secret>);
 
     }
 }

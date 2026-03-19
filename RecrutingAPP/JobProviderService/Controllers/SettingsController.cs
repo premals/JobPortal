@@ -58,6 +58,9 @@ namespace JobProviderService.Controllers
 
             settings.Ai.EnableShortlistSuggestions = dto.Ai.EnableShortlistSuggestions;
             settings.Ai.EnableInterviewAi = dto.Ai.EnableInterviewAi;
+            settings.Ai.Provider = string.IsNullOrWhiteSpace(dto.Ai.Provider)
+                ? "OpenAI"
+                : dto.Ai.Provider.Trim();
             settings.Ai.Endpoint = dto.Ai.Endpoint;
             settings.Ai.Deployment = dto.Ai.Deployment;
             settings.Ai.ApiVersion = dto.Ai.ApiVersion;
@@ -87,6 +90,9 @@ namespace JobProviderService.Controllers
                 {
                     EnableShortlistSuggestions = settings.Ai.EnableShortlistSuggestions,
                     EnableInterviewAi = settings.Ai.EnableInterviewAi,
+                    Provider = string.IsNullOrWhiteSpace(settings.Ai.Provider)
+                        ? "OpenAI"
+                        : settings.Ai.Provider,
                     Endpoint = settings.Ai.Endpoint,
                     Deployment = settings.Ai.Deployment,
                     ApiVersion = settings.Ai.ApiVersion,

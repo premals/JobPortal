@@ -1,9 +1,9 @@
-param(
+﻿param(
     [Parameter(Mandatory = $true)]
     [string]$Email,
 
     [Parameter(Mandatory = $true)]
-    [string]$Password,
+    [string]$<secret>,
 
     [Parameter(Mandatory = $true)]
     [string]$FullName,
@@ -11,8 +11,8 @@ param(
     [string]$MongoConnectionString,
     [string]$MongoDatabase,
 
-    [switch]$ForcePasswordReset,
-    [switch]$ResetPassword,
+    [switch]$Force<secret>Reset,
+    [switch]$Reset<secret>,
     [switch]$KeepTemp
 )
 
@@ -69,7 +69,7 @@ public class ApplicationUser : MongoIdentityUser<Guid>
     public string FullName { get; set; } = string.Empty;
     public bool EmailVerified { get; set; } = true;
     public bool IsActive { get; set; } = true;
-    public bool ForcePasswordReset { get; set; } = false;
+    public bool Force<secret>Reset { get; set; } = false;
 }
 
 [CollectionName("Roles")]
@@ -84,21 +84,21 @@ static string? GetArg(string name, string[] args)
 static bool HasFlag(string name, string[] args) => args.Contains(name);
 
 var email = GetArg("--email", args);
-var password = GetArg("--password", args);
+var <secret> = GetArg("--<secret>", args);
 var fullName = GetArg("--full-name", args);
 var mongo = GetArg("--mongo", args);
 var db = GetArg("--db", args);
 var forceReset = HasFlag("--force-reset", args);
-var resetPassword = HasFlag("--reset-password", args);
+var reset<secret> = HasFlag("--reset-<secret>", args);
 
 if (string.IsNullOrWhiteSpace(email) ||
-    string.IsNullOrWhiteSpace(password) ||
+    string.IsNullOrWhiteSpace(<secret>) ||
     string.IsNullOrWhiteSpace(fullName) ||
     string.IsNullOrWhiteSpace(mongo) ||
     string.IsNullOrWhiteSpace(db))
 {
     Console.Error.WriteLine("Missing required arguments.");
-    Console.Error.WriteLine("Required: --email --password --full-name --mongo --db");
+    Console.Error.WriteLine("Required: --email --<secret> --full-name --mongo --db");
     Environment.Exit(1);
 }
 
@@ -128,10 +128,10 @@ if (user == null)
         EmailConfirmed = true,
         EmailVerified = true,
         IsActive = true,
-        ForcePasswordReset = forceReset
+        Force<secret>Reset = forceReset
     };
 
-    var create = await userManager.CreateAsync(user, password);
+    var create = await userManager.CreateAsync(user, <secret>);
     if (!create.Succeeded)
     {
         Console.Error.WriteLine("Failed to create user: " + string.Join("; ", create.Errors.Select(e => e.Description)));
@@ -144,7 +144,7 @@ else
     user.EmailConfirmed = true;
     user.EmailVerified = true;
     user.IsActive = true;
-    if (forceReset) user.ForcePasswordReset = true;
+    if (forceReset) user.Force<secret>Reset = true;
 
     var update = await userManager.UpdateAsync(user);
     if (!update.Succeeded)
@@ -153,13 +153,13 @@ else
         Environment.Exit(3);
     }
 
-    if (resetPassword)
+    if (reset<secret>)
     {
-        var token = await userManager.GeneratePasswordResetTokenAsync(user);
-        var reset = await userManager.ResetPasswordAsync(user, token, password);
+        var token = await userManager.Generate<secret>ResetTokenAsync(user);
+        var reset = await userManager.Reset<secret>Async(user, token, <secret>);
         if (!reset.Succeeded)
         {
-            Console.Error.WriteLine("Failed to reset password: " + string.Join("; ", reset.Errors.Select(e => e.Description)));
+            Console.Error.WriteLine("Failed to reset <secret>: " + string.Join("; ", reset.Errors.Select(e => e.Description)));
             Environment.Exit(4);
         }
     }
@@ -186,14 +186,14 @@ $dotnetArgs = @(
     "--project", $tempRoot,
     "--",
     "--email", $Email,
-    "--password", $Password,
+    "--<secret>", $<secret>,
     "--full-name", $FullName,
     "--mongo", $MongoConnectionString,
     "--db", $MongoDatabase
 )
 
-if ($ForcePasswordReset) { $dotnetArgs += "--force-reset" }
-if ($ResetPassword) { $dotnetArgs += "--reset-password" }
+if ($Force<secret>Reset) { $dotnetArgs += "--force-reset" }
+if ($Reset<secret>) { $dotnetArgs += "--reset-<secret>" }
 
 & dotnet @dotnetArgs
 $exitCode = $LASTEXITCODE

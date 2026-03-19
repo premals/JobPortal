@@ -20,11 +20,12 @@ namespace JobProviderService.DTO
     {
         public bool EnableShortlistSuggestions { get; set; } = true;
         public bool EnableInterviewAi { get; set; } = true;
+        public string? Provider { get; set; }
         public string? Endpoint { get; set; }
         public string? Deployment { get; set; }
         public string? ApiVersion { get; set; }
-        public bool EnableAvatar { get; set; } = false;
-        public string? AvatarProvider { get; set; }
+        public bool EnableAvatar { get; set; } = true;
+        public string? AvatarProvider { get; set; } = "Men";
     }
 
     public class EmailTemplateSettingsDto

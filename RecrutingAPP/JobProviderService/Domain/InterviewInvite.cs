@@ -20,9 +20,14 @@ namespace JobProviderService.Domain
         public string Difficulty { get; set; } = "Medium";
         public string Status { get; set; } = "Pending";
         public int QuestionsCount { get; set; } = 5;
+        public List<string> CustomQuestions { get; set; } = new();
 
         public List<InterviewTimeSlot> ProposedSlots { get; set; } = new();
         public DateTime? SelectedSlot { get; set; }
+
+        public string? PublicToken { get; set; }
+        public DateTime? TokenExpiresAt { get; set; }
+        public DateTime? TokenUsedAt { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

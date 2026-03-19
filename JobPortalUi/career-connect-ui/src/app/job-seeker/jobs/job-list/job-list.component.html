@@ -1,11 +1,43 @@
-<h4>Jobs</h4>
+<h4>{{ listTitle }}</h4>
+
+<form class="d-flex gap-2 align-items-center mb-3" (ngSubmit)="onSearch()">
+  <input
+    class="form-control"
+    type="search"
+    name="searchTerm"
+    [(ngModel)]="searchTerm"
+    placeholder="Search jobs by title, skill, or keyword"
+    aria-label="Search jobs">
+  <button class="btn btn-outline-primary" type="submit" [disabled]="loading">
+    Search
+  </button>
+  <button
+    class="btn btn-link"
+    type="button"
+    (click)="clearSearch()"
+    [disabled]="loading || !searchTerm">
+    Clear
+  </button>
+</form>
+
+<div *ngIf="loading" class="text-muted mb-3">Loading jobs...</div>
+<div *ngIf="!loading && jobs.length === 0" class="alert alert-secondary">
+  No jobs found.
+</div>
 
 <div *ngFor="let job of jobs" class="card mb-3 p-3">
   <h5>{{ job.title }}</h5>
   <p>{{ job.city }} | {{ job.employmentType }}</p>
 
-  <button class="btn btn-primary btn-sm"
-          (click)="view(job.id)">
-    View Details
-  </button>
+  <div class="d-flex gap-2">
+    <button class="btn btn-primary btn-sm"
+            (click)="view(job)">
+      View Details
+    </button>
+    <button class="btn btn-success btn-sm"
+            (click)="apply(job)"
+            [disabled]="isApplied(job) || isApplying(job)">
+      {{ isApplied(job) ? 'Applied' : (isApplying(job) ? 'Applying...' : 'Apply') }}
+    </button>
+  </div>
 </div>

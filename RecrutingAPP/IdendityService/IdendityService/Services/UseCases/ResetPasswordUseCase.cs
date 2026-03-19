@@ -4,28 +4,28 @@ using Microsoft.AspNetCore.Identity;
 
 namespace IdendityService.Services.UseCases
 {
-    public class ResetPasswordUseCase : IResetPasswordUseCase
+    public class Reset<secret>UseCase : IReset<secret>UseCase
     {
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public ResetPasswordUseCase(UserManager<ApplicationUser> userManager)
+        public Reset<secret>UseCase(UserManager<ApplicationUser> userManager)
         {
             _userManager = userManager;
         }
 
-        public async Task ExecuteAsync(IdendityService.DTOs.ResetPasswordRequestDto.ResetPasswordRequest req)
+        public async Task ExecuteAsync(IdendityService.DTOs.Reset<secret>RequestDto.Reset<secret>Request req)
         {
             var user = await _userManager.FindByEmailAsync(req.Email);
             if (user == null)
                 throw new ApplicationException("Invalid reset request");
 
-            var result = await _userManager.ResetPasswordAsync(
+            var result = await _userManager.Reset<secret>Async(
                 user,
                 req.Token,
-                req.NewPassword);
+                req.New<secret>);
 
             if (!result.Succeeded)
-                throw new ApplicationException("Password reset failed");
+                throw new ApplicationException("<secret> reset failed");
         }
     }
 }

@@ -1,9 +1,9 @@
-﻿using static IdendityService.DTOs.ResetPasswordRequestDto;
+﻿using static IdendityService.DTOs.Reset<secret>RequestDto;
 
 namespace IdendityService.Interfaces.Auth
 {
-    public interface IResetPasswordUseCase
+    public interface IReset<secret>UseCase
     {
-        Task ExecuteAsync(ResetPasswordRequest request);
+        Task ExecuteAsync(Reset<secret>Request request);
     }
 }

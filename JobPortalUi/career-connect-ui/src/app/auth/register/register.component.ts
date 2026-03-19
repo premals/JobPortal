@@ -60,8 +60,10 @@ export class RegisterComponent {
       },
       error: (err) => {
         this.isLoading = false;
-        this.errorMessage =
-          err?.error?.message || 'Registration failed';
+        const backendMessage = typeof err?.error === 'string'
+          ? err.error
+          : err?.error?.message ?? err?.error?.detail;
+        this.errorMessage = backendMessage || 'Registration failed';
       }
     });
   }
@@ -72,5 +74,57 @@ export class RegisterComponent {
 
   selectRole(role: string): void {
     this.registerForm.patchValue({ userType: role });
+  }
+
+  isFieldInvalid(controlName: string): boolean {
+    const control = this.registerForm.get(controlName);
+    return !!control && control.invalid && (control.dirty || control.touched);
+  }
+
+  get emailError(): string | null {
+    const control = this.registerForm.get('email');
+    if (!control || !this.isFieldInvalid('email')) {
+      return null;
+    }
+
+    if (control.hasError('required')) {
+      return 'Email is required';
+    }
+
+    if (control.hasError('email')) {
+      return 'Enter a valid email address';
+    }
+
+    return null;
+  }
+
+  get passwordError(): string | null {
+    const control = this.registerForm.get('password');
+    if (!control || !this.isFieldInvalid('password')) {
+      return null;
+    }
+
+    if (control.hasError('required')) {
+      return 'Password is required';
+    }
+
+    if (control.hasError('minlength')) {
+      return 'Password must be at least 6 characters';
+    }
+
+    return null;
+  }
+
+  get roleError(): string | null {
+    const control = this.registerForm.get('userType');
+    if (!control || !this.isFieldInvalid('userType')) {
+      return null;
+    }
+
+    if (control.hasError('required')) {
+      return 'Please select a role to continue';
+    }
+
+    return null;
   }
 }

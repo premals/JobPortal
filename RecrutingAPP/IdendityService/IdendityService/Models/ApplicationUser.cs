@@ -10,6 +10,6 @@ namespace IdendityService.Models
         public bool EmailVerified { get; set; }
         public List<RefreshToken> RefreshTokens { get; set; } = new();
         public bool IsActive { get; set; } = true;
-        public bool ForcePasswordReset { get; set; } = false;
+        public bool Force<secret>Reset { get; set; } = false;
     }
 }

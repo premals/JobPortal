@@ -51,6 +51,7 @@ namespace JobProviderService.Application.UseCases
 
             var config = new AiRuntimeConfig
             {
+                Provider = settings.Ai.Provider,
                 Endpoint = settings.Ai.Endpoint,
                 Deployment = settings.Ai.Deployment,
                 ApiVersion = settings.Ai.ApiVersion

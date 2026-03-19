@@ -1,4 +1,4 @@
-using IdendityService.DTOs;
+﻿using IdendityService.DTOs;
 using IdendityService.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -74,7 +74,7 @@ namespace IdendityService.Controllers
                     Email = user.Email ?? string.Empty,
                     Role = primaryRole,
                     IsActive = user.IsActive,
-                    ForcePasswordReset = user.ForcePasswordReset
+                    Force<secret>Reset = user.Force<secret>Reset
                 });
             }
 
@@ -116,7 +116,7 @@ namespace IdendityService.Controllers
             if (user == null) return NotFound();
 
             user.RefreshTokens.Clear();
-            user.ForcePasswordReset = true;
+            user.Force<secret>Reset = true;
             await _userManager.UpdateAsync(user);
             return Ok();
         }

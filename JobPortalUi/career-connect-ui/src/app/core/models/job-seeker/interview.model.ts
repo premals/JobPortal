@@ -104,6 +104,29 @@ export interface InvitationResponse {
   respondedAt?: string;
 }
 
+export interface PublicInterviewInvite {
+  inviteId: string;
+  jobTitle: string;
+  candidateName: string;
+  candidateEmail: string;
+  status: string;
+  difficulty: string;
+  questionsCount: number;
+  proposedSlots: InterviewTimeSlot[];
+  selectedSlot?: Date;
+  tokenExpiresAt?: Date;
+  sessionId?: string;
+}
+
+export interface PublicInterviewSession {
+  sessionId: string;
+  status: string;
+  scheduledStart?: Date;
+  scheduledEnd?: Date;
+  questions: string[];
+  avatarProvider?: string;
+}
+
 export interface AcceptInvitationRequest {
   invitationId: string;
   selectedSlot?: string;

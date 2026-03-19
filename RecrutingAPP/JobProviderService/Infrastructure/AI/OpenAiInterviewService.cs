@@ -6,6 +6,8 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Azure.Core;
+using Azure.Identity;
 using JobProviderService.Application.Interfaces;
 using JobProviderService.Domain;
 using JobProviderService.DTO;
@@ -16,12 +18,24 @@ namespace JobProviderService.Infrastructure.AI
     public class OpenAiInterviewService : IAiInterviewService
     {
         private readonly HttpClient _http;
-        private readonly OpenAiOptions _options;
+        private readonly OpenAiOptions _openAiOptions;
+        private readonly AzureOpenAiOptions _azureOptions;
+        private readonly DefaultAzureCredential _azureCredential;
+        private readonly TokenRequestContext _azureTokenContext;
 
-        public OpenAiInterviewService(HttpClient http, IOptions<OpenAiOptions> options)
+        public OpenAiInterviewService(
+            HttpClient http,
+            IOptions<OpenAiOptions> openAiOptions,
+            IOptions<AzureOpenAiOptions> azureOptions)
         {
             _http = http;
-            _options = options.Value;
+            _openAiOptions = openAiOptions.Value;
+            _azureOptions = azureOptions.Value;
+            _azureCredential = new DefaultAzureCredential();
+            var scope = string.IsNullOrWhiteSpace(_azureOptions.TokenScope)
+                ? "https://cognitiveservices.azure.com/.default"
+                : _azureOptions.TokenScope.Trim();
+            _azureTokenContext = new TokenRequestContext(new[] { scope });
         }
 
         public async Task<AiShortlistSuggestionResponse> GetShortlistSuggestionAsync(
@@ -125,12 +139,19 @@ Transcript:
 
         private async Task<string> SendPromptAsync(string label, string prompt, AiRuntimeConfig? config)
         {
-            var apiKey = _options.ApiKey;
+            return IsAzureProvider(config?.Provider)
+                ? await SendAzurePromptAsync(label, prompt, config)
+                : await SendOpenAiPromptAsync(label, prompt, config);
+        }
+
+        private async Task<string> SendOpenAiPromptAsync(string label, string prompt, AiRuntimeConfig? config)
+        {
+            var apiKey = _openAiOptions.ApiKey;
             if (string.IsNullOrWhiteSpace(apiKey))
                 throw new InvalidOperationException("OpenAI ApiKey is required.");
 
-            var baseUrl = FirstNonEmpty(config?.Endpoint, _options.BaseUrl, "https://api.openai.com/v1");
-            var model = FirstNonEmpty(config?.Deployment, _options.Model);
+            var baseUrl = FirstNonEmpty(config?.Endpoint, _openAiOptions.BaseUrl, "https://api.openai.com/v1");
+            var model = FirstNonEmpty(config?.Deployment, _openAiOptions.Model);
             if (string.IsNullOrWhiteSpace(model))
                 throw new InvalidOperationException("OpenAI model is required.");
 
@@ -148,10 +169,10 @@ Transcript:
 
             using var request = new HttpRequestMessage(HttpMethod.Post, requestUri);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
-            if (!string.IsNullOrWhiteSpace(_options.Organization))
-                request.Headers.Add("OpenAI-Organization", _options.Organization);
-            if (!string.IsNullOrWhiteSpace(_options.Project))
-                request.Headers.Add("OpenAI-Project", _options.Project);
+            if (!string.IsNullOrWhiteSpace(_openAiOptions.Organization))
+                request.Headers.Add("OpenAI-Organization", _openAiOptions.Organization);
+            if (!string.IsNullOrWhiteSpace(_openAiOptions.Project))
+                request.Headers.Add("OpenAI-Project", _openAiOptions.Project);
 
             request.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
@@ -171,6 +192,67 @@ Transcript:
             }
 
             return text;
+        }
+
+        private async Task<string> SendAzurePromptAsync(string label, string prompt, AiRuntimeConfig? config)
+        {
+            var endpoint = FirstNonEmpty(config?.Endpoint, _azureOptions.Endpoint);
+            if (string.IsNullOrWhiteSpace(endpoint))
+                throw new InvalidOperationException("Azure OpenAI endpoint is required.");
+
+            var deployment = FirstNonEmpty(config?.Deployment, _azureOptions.Deployment);
+            if (string.IsNullOrWhiteSpace(deployment))
+                throw new InvalidOperationException("Azure OpenAI deployment is required.");
+
+            var apiVersion = FirstNonEmpty(config?.ApiVersion, _azureOptions.ApiVersion);
+            if (string.IsNullOrWhiteSpace(apiVersion))
+                throw new InvalidOperationException("Azure OpenAI apiVersion is required.");
+
+            var requestUri =
+                $"{endpoint.TrimEnd('/')}/openai/deployments/{deployment}/chat/completions?api-version={apiVersion}";
+
+            var payload = new
+            {
+                messages = new[]
+                {
+                    new { role = "system", content = "Return valid JSON only. No markdown." },
+                    new { role = "user", content = prompt }
+                }
+            };
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, requestUri);
+            var token = await _azureCredential.GetTokenAsync(_azureTokenContext, default);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+            request.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+
+            using var response = await _http.SendAsync(request);
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new HttpRequestException(
+             $"Azure OpenAI {label} call failed ({(int)response.StatusCode}): {responseBody}");
+            }
+
+            var text = ExtractContentText(responseBody);
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                throw new InvalidOperationException($"Azure OpenAI {label} returned empty content.");
+            }
+
+            return text;
+        }
+
+        private static bool IsAzureProvider(string? provider)
+        {
+            if (string.IsNullOrWhiteSpace(provider))
+                return false;
+
+            var normalized = provider.Trim();
+            return normalized.Equals("AzureAI", StringComparison.OrdinalIgnoreCase)
+                || normalized.Equals("AzureOpenAI", StringComparison.OrdinalIgnoreCase)
+                || normalized.Equals("Azure", StringComparison.OrdinalIgnoreCase)
+                || normalized.Equals("Azure AI Foundry", StringComparison.OrdinalIgnoreCase);
         }
 
         private static string ExtractContentText(string json)

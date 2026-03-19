@@ -10,6 +10,7 @@ using JobProviderService.Infrastructure.Indexes;
 using JobProviderService.Infrastructure.Messaging;
 using JobProviderService.Infrastructure.Messaging.Azure;
 using JobProviderService.Infrastructure.Messaging.RabbitMQ;
+using JobProviderService.Infrastructure.Options;
 using JobProviderService.Infrastructure.Repository;
 using JobProviderService.Infrastructure.Services;
 using JobProviderService.Logging;
@@ -78,11 +79,26 @@ builder.Services.AddScoped<InterviewSessionUseCase>();
 builder.Services.AddScoped<UpdateApplicationStatusUseCase>();
 builder.Services.AddScoped<JobAppliedEventHandler>();
 builder.Services.AddScoped<JobApplicationWithdrawnEventHandler>();
-builder.Services.AddScoped<IEmailService, ConsoleEmailService>();
+builder.Services.AddHttpClient<IEmailService, HttpEmailService>((sp, client) =>
+{
+    var config = sp.GetRequiredService<IConfiguration>();
+    var baseUrl = config["EmailService:BaseUrl"];
+    if (!string.IsNullOrWhiteSpace(baseUrl))
+    {
+        client.BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/");
+    }
+});
 
 builder.Services.Configure<OpenAiOptions>(
     builder.Configuration.GetSection("OpenAI"));
+builder.Services.Configure<AzureOpenAiOptions>(
+    builder.Configuration.GetSection("AzureOpenAI"));
+builder.Services.Configure<AppUrlOptions>(
+    builder.Configuration.GetSection("AppUrls"));
+builder.Services.Configure<BlobStorageOptions>(
+    builder.Configuration.GetSection("BlobStorage"));
 builder.Services.AddHttpClient<IAiInterviewService, OpenAiInterviewService>();
+builder.Services.AddSingleton<IInterviewRecordingStorage, AzureBlobInterviewRecordingStorage>();
 
 // -----------------------------
 // Messaging Configuration

@@ -8,7 +8,9 @@ import {
   AcceptInvitationRequest,
   RejectInvitationRequest,
   SubmitVideoResponseRequest,
-  InterviewAnalysis
+  InterviewAnalysis,
+  PublicInterviewInvite,
+  PublicInterviewSession
 } from '../models/job-seeker/interview.model';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -27,6 +29,87 @@ export class InterviewService {
       .pipe(
         map(invitations => invitations.map(inv => this.mapInvitation(inv)))
       );
+  }
+
+  /**
+   * Get a public interview invite by token
+   */
+  getPublicInvite(token: string): Observable<PublicInterviewInvite> {
+    return this.http.get<any>(
+      `${this.baseUrl}/jobprovider/jobs/interviews/public/${encodeURIComponent(token)}`
+    ).pipe(
+      map(invite => ({
+        inviteId: invite.inviteId,
+        jobTitle: invite.jobTitle,
+        candidateName: invite.candidateName,
+        candidateEmail: invite.candidateEmail,
+        status: invite.status,
+        difficulty: invite.difficulty,
+        questionsCount: Number(invite.questionsCount ?? 0),
+        proposedSlots: (invite.proposedSlots ?? []).map((slot: any) => ({
+          start: new Date(slot.start),
+          end: new Date(slot.end)
+        })),
+        selectedSlot: invite.selectedSlot ? new Date(invite.selectedSlot) : undefined,
+        tokenExpiresAt: invite.tokenExpiresAt ? new Date(invite.tokenExpiresAt) : undefined,
+        sessionId: invite.sessionId ?? undefined
+      }))
+    );
+  }
+
+  /**
+   * Accept a public invite by token
+   */
+  acceptPublicInvite(token: string, selectedSlot: Date): Observable<PublicInterviewSession> {
+    return this.http.post<any>(
+      `${this.baseUrl}/jobprovider/jobs/interviews/public/${encodeURIComponent(token)}/accept`,
+      { selectedSlot }
+    ).pipe(
+      map(session => this.mapPublicSession(session))
+    );
+  }
+
+  /**
+   * Get public interview session by token
+   */
+  getPublicSession(token: string): Observable<PublicInterviewSession> {
+    return this.http.get<any>(
+      `${this.baseUrl}/jobprovider/jobs/interviews/public/${encodeURIComponent(token)}/session`
+    ).pipe(
+      map(session => this.mapPublicSession(session))
+    );
+  }
+
+  /**
+   * Start public interview session by token
+   */
+  startPublicSession(token: string): Observable<any> {
+    return this.http.post<any>(
+      `${this.baseUrl}/jobprovider/jobs/interviews/public/${encodeURIComponent(token)}/start`,
+      {}
+    );
+  }
+
+  /**
+   * Upload video response for public interview
+   */
+  uploadPublicResponse(
+    token: string,
+    questionIndex: number,
+    answerText: string,
+    videoBlob: Blob,
+    duration: number
+  ): Observable<any> {
+    const formData = new FormData();
+    formData.append('questionIndex', questionIndex.toString());
+    formData.append('answerText', answerText);
+    formData.append('durationSeconds', duration.toString());
+    formData.append('video', videoBlob, 'response.webm');
+
+    return this.http.post(
+      `${this.baseUrl}/jobprovider/jobs/interviews/public/${encodeURIComponent(token)}/upload`,
+      formData
+    );
   }
 
   /**
@@ -163,6 +246,17 @@ export class InterviewService {
       expiresAt: response.expiresAt ? new Date(response.expiresAt) : undefined,
       createdAt: new Date(response.createdAt),
       respondedAt: response.respondedAt ? new Date(response.respondedAt) : undefined
+    };
+  }
+
+  private mapPublicSession(session: any): PublicInterviewSession {
+    return {
+      sessionId: session.sessionId,
+      status: session.status,
+      scheduledStart: session.scheduledStart ? new Date(session.scheduledStart) : undefined,
+      scheduledEnd: session.scheduledEnd ? new Date(session.scheduledEnd) : undefined,
+      questions: Array.isArray(session.questions) ? session.questions : [],
+      avatarProvider: session.avatarProvider ?? undefined
     };
   }
 }

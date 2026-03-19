@@ -7,7 +7,7 @@ import { JobProviderService } from '../../core/services/job-provider.service';
 import { JobSeekerProfileService } from '../../core/services/job-seeker-profile.service';
 import { ProfileResponse } from '../../core/models/profile/profile-response.model';
 import { JobProviderProfile } from '../../core/models/job-provider/job-provider-profile.model';
-import { JobSeekerProfile, WorkExperience, EducationRecord, ProjectRecord, CertificationRecord, LanguageRecord } from '../../core/models/job-seeker/job-seeker-profile.model';
+import { JobSeekerProfile } from '../../core/models/job-seeker/job-seeker-profile.model';
 
 @Component({
   selector: 'app-edit-profile',
@@ -24,6 +24,7 @@ export class EditProfileComponent implements OnInit {
   isSaving = false;
   successMessage = '';
   errorMessage = '';
+  jobSeekerSubmitAttempted = false;
 
   profile: ProfileResponse = { fullName: '', email: '' };
   jobProviderProfile: JobProviderProfile = {
@@ -43,6 +44,7 @@ export class EditProfileComponent implements OnInit {
   jobSeekerProfile: JobSeekerProfile = {
     fullName: '',
     email: '',
+    gender: '',
     skills: [],
     experienceYears: 0,
     education: '',
@@ -56,8 +58,6 @@ export class EditProfileComponent implements OnInit {
       template: 'Clean'
     }
   };
-
-  skillInput = '';
 
   constructor(
     private profileService: ProfileService,
@@ -121,7 +121,6 @@ export class EditProfileComponent implements OnInit {
           email: res.email,
           userType: 'JobSeeker'
         };
-        this.skillInput = res.skills?.join(', ') ?? '';
         this.isLoading = false;
       },
       error: () => {
@@ -157,111 +156,26 @@ export class EditProfileComponent implements OnInit {
   }
 
   saveJobSeeker(): void {
+    this.jobSeekerSubmitAttempted = true;
+    if (!this.jobSeekerProfile.fullName?.trim()) {
+      return;
+    }
+
     this.isSaving = true;
     this.successMessage = '';
     this.errorMessage = '';
-
-    this.jobSeekerProfile.skills = this.skillInput
-      .split(',')
-      .map(x => x.trim())
-      .filter(Boolean);
 
     this.jobSeekerService.updateProfile(this.jobSeekerProfile).subscribe({
       next: () => {
         this.profileService.updateProfile({ fullName: this.jobSeekerProfile.fullName }).subscribe();
         this.successMessage = 'Profile updated successfully.';
+        this.jobSeekerSubmitAttempted = false;
       },
       error: () => {
         this.errorMessage = 'Unable to update job seeker profile.';
       },
       complete: () => {
         this.isSaving = false;
-      }
-    });
-  }
-
-  addWork(): void {
-    this.jobSeekerProfile.workHistory.push({
-      company: '',
-      role: '',
-      startDate: '',
-      endDate: '',
-      description: '',
-      skills: []
-    });
-  }
-
-  removeWork(index: number): void {
-    this.jobSeekerProfile.workHistory.splice(index, 1);
-  }
-
-  addEducation(): void {
-    this.jobSeekerProfile.educationHistory.push({
-      school: '',
-      degree: '',
-      field: '',
-      graduationYear: ''
-    });
-  }
-
-  removeEducation(index: number): void {
-    this.jobSeekerProfile.educationHistory.splice(index, 1);
-  }
-
-  addProject(): void {
-    this.jobSeekerProfile.projects.push({
-      name: '',
-      role: '',
-      description: '',
-      link: ''
-    });
-  }
-
-  removeProject(index: number): void {
-    this.jobSeekerProfile.projects.splice(index, 1);
-  }
-
-  addCertification(): void {
-    this.jobSeekerProfile.certifications.push({
-      name: '',
-      issuer: '',
-      year: ''
-    });
-  }
-
-  removeCertification(index: number): void {
-    this.jobSeekerProfile.certifications.splice(index, 1);
-  }
-
-  addLanguage(): void {
-    this.jobSeekerProfile.languages.push({
-      name: '',
-      proficiency: ''
-    });
-  }
-
-  removeLanguage(index: number): void {
-    this.jobSeekerProfile.languages.splice(index, 1);
-  }
-
-  generateAiSummary(): void {
-    const payload = {
-      fullName: this.jobSeekerProfile.fullName,
-      targetRole: this.jobSeekerProfile.headline || 'Professional',
-      experienceYears: this.jobSeekerProfile.experienceYears,
-      skills: this.jobSeekerProfile.skills,
-      education: this.jobSeekerProfile.education,
-      summary: this.jobSeekerProfile.summary,
-      workHistory: this.jobSeekerProfile.workHistory,
-      projects: this.jobSeekerProfile.projects,
-      certifications: this.jobSeekerProfile.certifications,
-      atsFriendly: this.jobSeekerProfile.resumeSettings.atsFriendly,
-      template: this.jobSeekerProfile.resumeSettings.template
-    };
-
-    this.jobSeekerService.generateResumeAi(payload).subscribe({
-      next: (summary) => {
-        this.jobSeekerProfile.summary = summary;
       }
     });
   }

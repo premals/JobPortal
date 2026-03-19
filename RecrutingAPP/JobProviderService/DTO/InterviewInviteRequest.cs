@@ -5,6 +5,7 @@ namespace JobProviderService.DTO
         public string Difficulty { get; set; } = "Medium";
         public List<DateTime> ProposedSlots { get; set; } = new();
         public int QuestionsCount { get; set; } = 5;
+        public List<string>? CustomQuestions { get; set; }
     }
 
     public class InterviewInviteAcceptRequest

@@ -1,0 +1,66 @@
+<div class="public-interview">
+  <div class="invite-shell" *ngIf="loading">
+    <div class="loader">Loading interview invitation...</div>
+  </div>
+
+  <div class="invite-shell" *ngIf="!loading && error">
+    <div class="error-card">
+      <h2>Unable to load interview</h2>
+      <p>{{ error }}</p>
+    </div>
+  </div>
+
+  <div class="invite-shell" *ngIf="!loading && invite">
+    <div class="header-card">
+      <span class="eyebrow">Interview Invitation</span>
+      <h1>{{ invite.jobTitle }}</h1>
+      <p>Hi {{ invite.candidateName }}, schedule your interview using the slots below.</p>
+      <div class="meta">
+        <span>Difficulty: {{ invite.difficulty }}</span>
+        <span>Questions: {{ invite.questionsCount }}</span>
+      </div>
+    </div>
+
+    <div class="content-card" *ngIf="!session">
+      <h3>Select a time slot</h3>
+      <div class="slot-grid">
+        <button
+          class="slot-option"
+          *ngFor="let slot of invite.proposedSlots"
+          [class.active]="selectedSlot?.getTime() === slot.start.getTime()"
+          (click)="selectSlot(slot)">
+          <strong>{{ slot.start | date:'mediumDate' }}</strong>
+          <span>{{ slot.start | date:'shortTime' }} - {{ slot.end | date:'shortTime' }}</span>
+        </button>
+      </div>
+      <div class="actions">
+        <button class="btn btn-primary" (click)="acceptSlot()" [disabled]="isAccepting">
+          {{ isAccepting ? 'Scheduling...' : 'Confirm Schedule' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="content-card" *ngIf="session">
+      <h3>Interview Scheduled</h3>
+      <p>
+        Your interview is scheduled for
+        <strong>{{ session.scheduledStart | date:'medium' }}</strong>.
+      </p>
+      <p class="slot-hint" *ngIf="slotWindowMessage">{{ slotWindowMessage }}</p>
+      <button class="btn btn-primary" (click)="startInterview()" [disabled]="!canStart || isStarting">
+        {{ isStarting ? 'Starting...' : 'Start Interview' }}
+      </button>
+      <p class="complete-note" *ngIf="completed">
+        Interview submitted successfully. Thank you!
+      </p>
+    </div>
+
+    <div class="interview-card" *ngIf="showInterview && interviewVm">
+      <app-video-interview
+        [interview]="interviewVm"
+        [publicToken]="token"
+        (submitted)="handleSubmitted()">
+      </app-video-interview>
+    </div>
+  </div>
+</div>

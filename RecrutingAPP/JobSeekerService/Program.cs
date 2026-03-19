@@ -86,8 +86,12 @@ builder.Services.AddScoped<ParseResumeFileUseCase>();
 // ================================
 builder.Services.AddScoped<IResumeAiService, ResumeAiService>();
 builder.Services.AddScoped<IResumePdfGenerator, ResumePdfGenerator>();
+builder.Services.Configure<AiProviderOptions>(
+    builder.Configuration.GetSection("AI"));
 builder.Services.Configure<OpenAiOptions>(
     builder.Configuration.GetSection("OpenAI"));
+builder.Services.Configure<AzureOpenAiOptions>(
+    builder.Configuration.GetSection("AzureOpenAI"));
 builder.Services.AddHttpClient<IResumeParserService, ResumeParserService>();
 
 // ================================

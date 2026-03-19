@@ -10,29 +10,33 @@ namespace JobProviderService.Infrastructure.Messaging.RabbitMQ
     public class JobApplicationConsumer : BackgroundService
     {
         private readonly IServiceScopeFactory _scopeFactory;
-        private IModel _channel;
+        private readonly ILogger<JobApplicationConsumer> _logger;
+        private readonly IConnection _connection;
+        private readonly IModel _channel;
 
         private const string Exchange = "job-applications.exchange";
         private const string Queue = "jobprovider.jobapplications.queue";
 
         public JobApplicationConsumer(
             IServiceScopeFactory scopeFactory,
-            IConfiguration rabbitConfig)
+            IConfiguration configuration,
+            ILogger<JobApplicationConsumer> logger)
         {
             _scopeFactory = scopeFactory;
+            _logger = logger;
 
+            var rabbitConfig = configuration.GetSection("Messaging:RabbitMQ");
             var factory = new ConnectionFactory
             {
                 HostName = rabbitConfig["Host"] ?? "localhost",
                 Port = int.Parse(rabbitConfig["Port"] ?? "5672"),
-                UserName =  "guest",
-                Password =  "guest",
+                UserName = rabbitConfig["UserName"] ?? rabbitConfig["Username"] ?? "guest",
+                <secret> = rabbitConfig["<secret>"] ?? "guest",
                 DispatchConsumersAsync = true
             };
 
-
-            var connection = factory.CreateConnection();
-            _channel = connection.CreateModel();
+            _connection = factory.CreateConnection();
+            _channel = _connection.CreateModel();
 
             _channel.ExchangeDeclare(Exchange, ExchangeType.Fanout, true);
             _channel.QueueDeclare(Queue, true, false, false);
@@ -48,46 +52,36 @@ namespace JobProviderService.Infrastructure.Messaging.RabbitMQ
                 try
                 {
                     var json = Encoding.UTF8.GetString(ea.Body.ToArray());
-
+                    var eventType = ExtractEventType(json);
                     using var scope = _scopeFactory.CreateScope();
 
-                    // 🔹 Route by EventType
-                    var baseEvent = JsonSerializer.Deserialize<BaseEvent>(json);
-
-                    switch (baseEvent?.EventType)
+                    switch (eventType)
                     {
                         case nameof(JobAppliedEvent):
-                            {
-                                var evt = JsonSerializer.Deserialize<JobAppliedEvent>(json)!;
-                                var handler = scope.ServiceProvider
-                                    .GetRequiredService<JobAppliedEventHandler>();
-
-                                await handler.HandleAsync(evt);
-                                break;
-                            }
-
+                        {
+                            var evt = JsonSerializer.Deserialize<JobAppliedEvent>(json)!;
+                            var handler = scope.ServiceProvider.GetRequiredService<JobAppliedEventHandler>();
+                            await handler.HandleAsync(evt);
+                            break;
+                        }
                         case nameof(JobApplicationWithdrawnEvent):
-                            {
-                                var evt = JsonSerializer.Deserialize<JobApplicationWithdrawnEvent>(json)!;
-                                var handler = scope.ServiceProvider
-                                    .GetRequiredService<JobApplicationWithdrawnEventHandler>();
-
-                                await handler.HandleAsync(evt);
-                                break;
-                            }
-
+                        {
+                            var evt = JsonSerializer.Deserialize<JobApplicationWithdrawnEvent>(json)!;
+                            var handler = scope.ServiceProvider.GetRequiredService<JobApplicationWithdrawnEventHandler>();
+                            await handler.HandleAsync(evt);
+                            break;
+                        }
                         default:
-                            // Unknown event → ignore safely
+                            _logger.LogDebug("JobApplicationConsumer ignored event type: {EventType}", eventType);
                             break;
                     }
 
-                    // ✅ ACK only after successful processing
                     _channel.BasicAck(ea.DeliveryTag, false);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    // ❌ Requeue message on failure
-                    _channel.BasicNack(ea.DeliveryTag, false, requeue: true);
+                    _logger.LogError(ex, "JobApplicationConsumer failed to process message");
+                    _channel.BasicNack(ea.DeliveryTag, false, requeue: false);
                 }
             };
 
@@ -97,6 +91,21 @@ namespace JobProviderService.Infrastructure.Messaging.RabbitMQ
                 consumer: consumer);
 
             return Task.CompletedTask;
+        }
+
+        public override void Dispose()
+        {
+            _channel.Close();
+            _connection.Close();
+            base.Dispose();
+        }
+
+        private static string? ExtractEventType(string json)
+        {
+            using var doc = JsonDocument.Parse(json);
+            return doc.RootElement.TryGetProperty("EventType", out var eventType)
+                ? eventType.GetString()
+                : null;
         }
     }
 }

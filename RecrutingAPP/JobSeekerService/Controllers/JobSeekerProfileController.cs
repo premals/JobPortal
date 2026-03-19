@@ -4,6 +4,7 @@ using JobSeekerService.Domain.Entities;
 using JobSeekerService.Infrastructure.Messaging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using static Shared.Contracts.Events.JobEvents;
 
 namespace JobSeekerService.Controllers
@@ -25,7 +26,7 @@ namespace JobSeekerService.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var userId = User.FindFirst("userId")?.Value;
+            var userId = ResolveUserId();
             if (string.IsNullOrWhiteSpace(userId))
                 return Unauthorized();
 
@@ -36,7 +37,9 @@ namespace JobSeekerService.Controllers
                 {
                     UserId = userId,
                     FullName = string.Empty,
-                    Email = User.FindFirst("email")?.Value ?? string.Empty
+                    Email = User.FindFirst("email")?.Value
+                        ?? User.FindFirstValue(ClaimTypes.Email)
+                        ?? string.Empty
                 };
                 await _repository.CreateAsync(profile);
             }
@@ -47,7 +50,7 @@ namespace JobSeekerService.Controllers
         [HttpPut]
         public async Task<IActionResult> Update([FromBody] JobSeekerProfileRequest request)
         {
-            var userId = User.FindFirst("userId")?.Value;
+            var userId = ResolveUserId();
             if (string.IsNullOrWhiteSpace(userId))
                 return Unauthorized();
 
@@ -61,6 +64,7 @@ namespace JobSeekerService.Controllers
             profile.FullName = request.FullName;
             profile.Email = request.Email;
             profile.Phone = request.Phone;
+            profile.Gender = request.Gender;
             profile.Headline = request.Headline;
             profile.Summary = request.Summary;
             profile.Skills = request.Skills ?? new();
@@ -133,6 +137,13 @@ namespace JobSeekerService.Controllers
             });
 
             return Ok(profile);
+        }
+
+        private string? ResolveUserId()
+        {
+            return User.FindFirstValue(ClaimTypes.NameIdentifier)
+                ?? User.FindFirstValue("userId")
+                ?? User.FindFirstValue("sub");
         }
     }
 }

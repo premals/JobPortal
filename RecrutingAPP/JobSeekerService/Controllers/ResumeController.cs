@@ -168,6 +168,10 @@ namespace JobSeekerService.Controllers
             draft.Phone = result.Phone ?? draft.Phone;
             draft.Summary = result.Summary ?? draft.Summary;
             draft.Skills = MergeList(result.Skills, draft.Skills);
+            if (result.ExperienceYears.HasValue)
+                draft.ExperienceYears = result.ExperienceYears.Value;
+            if (!string.IsNullOrWhiteSpace(result.Education))
+                draft.Education = result.Education;
             draft.WorkHistory = MergeList(result.WorkHistory, draft.WorkHistory);
             draft.EducationHistory = MergeList(result.EducationHistory, draft.EducationHistory);
             draft.Projects = MergeList(result.Projects, draft.Projects);
@@ -231,6 +235,8 @@ namespace JobSeekerService.Controllers
                 Location = profile.Location,
                 Summary = profile.Summary,
                 Skills = profile.Skills ?? new List<string>(),
+                ExperienceYears = profile.ExperienceYears,
+                Education = profile.Education,
                 WorkHistory = profile.WorkHistory ?? new List<WorkExperience>(),
                 EducationHistory = profile.EducationHistory ?? new List<EducationRecord>(),
                 Projects = profile.Projects ?? new List<ProjectRecord>(),
@@ -251,6 +257,8 @@ namespace JobSeekerService.Controllers
             draft.Location = request.Location;
             draft.Summary = request.Summary;
             draft.Skills = request.Skills ?? new();
+            draft.ExperienceYears = request.ExperienceYears;
+            draft.Education = request.Education;
             draft.WorkHistory = request.WorkHistory ?? new();
             draft.EducationHistory = request.EducationHistory ?? new();
             draft.Projects = request.Projects ?? new();

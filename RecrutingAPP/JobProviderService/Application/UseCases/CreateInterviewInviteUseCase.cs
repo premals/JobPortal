@@ -2,6 +2,8 @@ using JobProviderService.Application.Interfaces;
 using JobProviderService.Domain;
 using JobProviderService.DTO;
 using JobProviderService.Infrastructure.Messaging;
+using JobProviderService.Infrastructure.Options;
+using Microsoft.Extensions.Options;
 using System.Linq;
 using static Shared.Contracts.Events.JobEvents;
 
@@ -15,6 +17,8 @@ namespace JobProviderService.Application.UseCases
         private readonly IJobProviderSettingsRepository _settings;
         private readonly IEmailService _emailService;
         private readonly IEventBus _eventBus;
+        private readonly AppUrlOptions _appUrls;
+        private const int DefaultTokenExpiryDays = 7;
 
         public CreateInterviewInviteUseCase(
             IJobRepository jobs,
@@ -22,7 +26,8 @@ namespace JobProviderService.Application.UseCases
             IInterviewRepository interviews,
             IJobProviderSettingsRepository settings,
             IEmailService emailService,
-            IEventBus eventBus)
+            IEventBus eventBus,
+            IOptions<AppUrlOptions> appUrls)
         {
             _jobs = jobs;
             _applications = applications;
@@ -30,6 +35,7 @@ namespace JobProviderService.Application.UseCases
             _settings = settings;
             _emailService = emailService;
             _eventBus = eventBus;
+            _appUrls = appUrls.Value;
         }
 
         public async Task<InterviewInvite> ExecuteAsync(
@@ -62,9 +68,20 @@ namespace JobProviderService.Application.UseCases
                 ? request.Difficulty
                 : settings.Interview.DefaultDifficulty;
 
+            var customQuestions = request.CustomQuestions?
+                .Where(q => !string.IsNullOrWhiteSpace(q))
+                .Select(q => q.Trim())
+                .Distinct()
+                .ToList() ?? new List<string>();
+
             var questionsCount = request.QuestionsCount > 0
                 ? request.QuestionsCount
                 : settings.Interview.QuestionsCount;
+
+            if (customQuestions.Count > 0)
+            {
+                questionsCount = customQuestions.Count;
+            }
 
             var invite = new InterviewInvite
             {
@@ -76,17 +93,21 @@ namespace JobProviderService.Application.UseCases
                 CandidateEmail = application.Email,
                 Difficulty = difficulty,
                 QuestionsCount = questionsCount,
+                CustomQuestions = customQuestions,
                 ProposedSlots = request.ProposedSlots.Select(slot => new InterviewTimeSlot
                 {
                     Start = slot,
                     End = slot.AddMinutes(settings.Interview.SlotDurationMinutes)
-                }).ToList()
+                }).ToList(),
+                PublicToken = GenerateToken(),
+                TokenExpiresAt = DateTime.UtcNow.AddDays(DefaultTokenExpiryDays)
             };
 
             await _interviews.CreateInviteAsync(invite);
 
-            var subject = ApplyTemplate(settings.Email.InviteSubject, job.Title, application.FullName);
-            var body = ApplyTemplate(settings.Email.InviteBody, job.Title, application.FullName);
+            var interviewLink = BuildInterviewLink(invite.PublicToken);
+            var subject = ApplyTemplate(settings.Email.InviteSubject, job.Title, application.FullName, interviewLink);
+            var body = ApplyTemplate(settings.Email.InviteBody, job.Title, application.FullName, interviewLink);
             await _emailService.SendAsync(application.Email, subject, body);
 
             await _eventBus.PublishAsync(new InterviewInviteCreatedEvent
@@ -105,11 +126,48 @@ namespace JobProviderService.Application.UseCases
             return invite;
         }
 
-        private static string ApplyTemplate(string template, string jobTitle, string candidateName)
+        private string BuildInterviewLink(string? token)
         {
-            return template
+            if (string.IsNullOrWhiteSpace(token))
+                return string.Empty;
+
+            if (string.IsNullOrWhiteSpace(_appUrls.FrontendBaseUrl))
+                return string.Empty;
+
+            var baseUrl = _appUrls.FrontendBaseUrl.TrimEnd('/');
+            var path = string.IsNullOrWhiteSpace(_appUrls.PublicInterviewPath)
+                ? "/public-interview"
+                : _appUrls.PublicInterviewPath.Trim();
+            if (!path.StartsWith("/"))
+                path = "/" + path;
+
+            return $"{baseUrl}{path}?token={Uri.EscapeDataString(token)}";
+        }
+
+        private static string ApplyTemplate(string template, string jobTitle, string candidateName, string? interviewLink)
+        {
+            var rendered = template
                 .Replace("{JobTitle}", jobTitle)
                 .Replace("{CandidateName}", candidateName);
+
+            if (!string.IsNullOrWhiteSpace(interviewLink))
+            {
+                if (rendered.Contains("{InterviewLink}"))
+                {
+                    rendered = rendered.Replace("{InterviewLink}", interviewLink);
+                }
+                else
+                {
+                    rendered = $"{rendered}\n\nInterview Link: {interviewLink}";
+                }
+            }
+
+            return rendered;
+        }
+
+        private static string GenerateToken()
+        {
+            return Guid.NewGuid().ToString("N");
         }
     }
 }

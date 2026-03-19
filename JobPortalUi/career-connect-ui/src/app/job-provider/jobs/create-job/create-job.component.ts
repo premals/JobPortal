@@ -25,6 +25,27 @@ export class CreateJobComponent {
 
   jobForm: FormGroup;
   step = 1;
+  private readonly stepFields: Record<number, string[]> = {
+    1: ['title', 'description', 'employmentType', 'workMode'],
+    2: [
+      'minExperience',
+      'maxExperience',
+      'city',
+      'state',
+      'country',
+      'keySkills',
+      'education',
+      'industry'
+    ],
+    3: [
+      'minSalary',
+      'maxSalary',
+      'currency',
+      'salaryFrequency',
+      'openings',
+      'expiryDate'
+    ]
+  };
 
   constructor(
     private fb: FormBuilder,
@@ -70,9 +91,16 @@ export class CreateJobComponent {
   }
 
   nextStep(): void {
-    if (this.step < 3) {
-      this.step++;
+    if (this.step >= 3) {
+      return;
     }
+
+    if (!this.isStepValid(this.step)) {
+      this.markStepTouched(this.step);
+      return;
+    }
+
+    this.step++;
   }
 
   prevStep(): void {
@@ -138,6 +166,47 @@ export class CreateJobComponent {
       error: () => {
         this.toastService.show('Failed to create job');
       }
+    });
+  }
+
+  isFieldInvalid(controlName: string): boolean {
+    const control = this.jobForm.get(controlName);
+    return !!control && control.invalid && (control.dirty || control.touched);
+  }
+
+  getFieldError(controlName: string, label: string): string | null {
+    const control = this.jobForm.get(controlName);
+    if (!control || !this.isFieldInvalid(controlName)) {
+      return null;
+    }
+
+    if (control.hasError('required')) {
+      return `${label} is required`;
+    }
+
+    if (control.hasError('minlength')) {
+      const requiredLength = control.getError('minlength')?.requiredLength ?? 0;
+      return `${label} must be at least ${requiredLength} characters`;
+    }
+
+    if (control.hasError('min')) {
+      const minValue = control.getError('min')?.min ?? 0;
+      return `${label} must be at least ${minValue}`;
+    }
+
+    return 'Invalid value';
+  }
+
+  private isStepValid(step: number): boolean {
+    return this.stepFields[step].every((field) => {
+      const control = this.jobForm.get(field);
+      return !!control && control.valid;
+    });
+  }
+
+  private markStepTouched(step: number): void {
+    this.stepFields[step].forEach((field) => {
+      this.jobForm.get(field)?.markAsTouched();
     });
   }
 }

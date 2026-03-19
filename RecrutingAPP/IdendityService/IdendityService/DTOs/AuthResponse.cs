@@ -1,4 +1,4 @@
-namespace IdendityService.DTOs
+﻿namespace IdendityService.DTOs
 {
     public class AuthResponseDto
     {
@@ -14,7 +14,7 @@ namespace IdendityService.DTOs
             string FullName,
             string Email,
             string UserType,
-            bool ForcePasswordReset
+            bool Force<secret>Reset
         );
     }
 }

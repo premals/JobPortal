@@ -189,6 +189,43 @@
   align-items: center;
 }
 
+.answer-text {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.answer-text label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.answer-text .form-control {
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  font-size: 13px;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.answer-text .form-control:focus {
+  outline: none;
+  border-color: #0ea5e9;
+  box-shadow: var(--cc-ring);
+}
+
+.uploading {
+  margin: 0;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0f766e;
+}
+
 .timer {
   font-size: 24px;
   font-weight: 600;

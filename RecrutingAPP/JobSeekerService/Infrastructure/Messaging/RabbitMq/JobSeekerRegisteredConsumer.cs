@@ -1,4 +1,4 @@
-using JobSeekerService.Application.EventHandler;
+﻿using JobSeekerService.Application.EventHandler;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
@@ -26,7 +26,7 @@ namespace JobSeekerService.Infrastructure.Messaging.RabbitMq
                 HostName = rabbitConfig["Host"] ?? "localhost",
                 Port = int.Parse(rabbitConfig["Port"] ?? "5672"),
                 UserName = "guest",
-                Password = "guest",
+                <secret> = "guest",
                 DispatchConsumersAsync = true
             };
 

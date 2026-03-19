@@ -91,13 +91,26 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label">OpenAI Base URL</label>
+        <label class="form-label">AI Provider</label>
+        <select class="form-select" [(ngModel)]="settings.ai.provider">
+          <option value="OpenAI">OpenAI</option>
+          <option value="AzureAI">Azure AI Foundry</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">{{ isAzureProvider ? 'Azure OpenAI Endpoint' : 'OpenAI Base URL' }}</label>
         <input type="text" class="form-control" [(ngModel)]="settings.ai.endpoint">
       </div>
 
       <div class="form-group">
-        <label class="form-label">Model</label>
+        <label class="form-label">{{ isAzureProvider ? 'Deployment Name' : 'Model' }}</label>
         <input type="text" class="form-control" [(ngModel)]="settings.ai.deployment">
+      </div>
+
+      <div class="form-group" *ngIf="isAzureProvider">
+        <label class="form-label">API Version</label>
+        <input type="text" class="form-control" [(ngModel)]="settings.ai.apiVersion">
       </div>
 
       <div class="toggle-row">

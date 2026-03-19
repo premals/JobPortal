@@ -1,4 +1,4 @@
-using JobSeekerService.Application.EventHandler;
+﻿using JobSeekerService.Application.EventHandler;
 using JobSeekerService.Application.Interfaces;
 using Microsoft.Extensions.Configuration;
 using MongoDB.Driver.Core.Connections;
@@ -31,8 +31,8 @@ namespace JobSeekerService.Infrastructure.Messaging.RabbitMq
             {
                 HostName = rabbitConfig["Host"] ?? "localhost",
                 Port = int.Parse(rabbitConfig["Port"] ?? "5672"),
-                UserName = rabbitConfig["Username"] ?? "guest",
-                Password = rabbitConfig["Password"] ?? "guest",
+                UserName = rabbitConfig["UserName"] ?? rabbitConfig["Username"] ?? "guest",
+                <secret> = rabbitConfig["<secret>"] ?? "guest",
                 DispatchConsumersAsync = true
             };
 

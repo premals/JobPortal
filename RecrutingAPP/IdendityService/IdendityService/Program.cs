@@ -1,4 +1,4 @@
-using AspNetCore.Identity.MongoDbCore.Extensions;
+﻿using AspNetCore.Identity.MongoDbCore.Extensions;
 using Azure.Messaging.ServiceBus;
 using IdendityService.Helper;
 using IdendityService.Infrastructure.Messaging;
@@ -99,9 +99,17 @@ services.AddCors(options =>
 // App services
 services.AddScoped<IJwtService, JwtService>();
 services.AddScoped<IRefreshTokenService, RefreshTokenService>();
-services.AddScoped<IEmailService, EmailService>();
-services.AddScoped<IForgotPasswordUseCase, ForgotPasswordUseCase>();
-services.AddScoped<IResetPasswordUseCase, ResetPasswordUseCase>();
+services.AddHttpClient<IEmailService, HttpEmailService>((sp, client) =>
+{
+    var config = sp.GetRequiredService<IConfiguration>();
+    var baseUrl = config["EmailService:BaseUrl"];
+    if (!string.IsNullOrWhiteSpace(baseUrl))
+    {
+        client.BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/");
+    }
+});
+services.AddScoped<IForgot<secret>UseCase, Forgot<secret>UseCase>();
+services.AddScoped<IReset<secret>UseCase, Reset<secret>UseCase>();
 services.AddScoped<IConfirmEmailUseCase, ConfirmEmailUseCase>();
 services.AddScoped<IAssignRoleUseCase, AssignRoleUseCase>();
 services.AddScoped<IRegisterUserUseCase, RegisterUserUseCase>();

@@ -60,7 +60,13 @@
 
         <div class="mb-3">
           <label class="form-label">Email</label>
-          <input type="email" class="form-control" formControlName="email" placeholder="you@company.com">
+          <input
+            type="email"
+            class="form-control"
+            formControlName="email"
+            placeholder="you@company.com"
+            [class.is-invalid]="isFieldInvalid('email')">
+          <p class="field-error" *ngIf="emailError">{{ emailError }}</p>
         </div>
 
         <div class="mb-3">
@@ -70,16 +76,18 @@
               [type]="showPassword ? 'text' : 'password'"
               class="form-control"
               formControlName="password"
-              placeholder="Create a password">
+              placeholder="Create a password"
+              [class.is-invalid]="isFieldInvalid('password')">
             <button type="button" class="ghost-btn" (click)="togglePassword()">
               {{ showPassword ? 'Hide' : 'Show' }}
             </button>
           </div>
+          <p class="field-error" *ngIf="passwordError">{{ passwordError }}</p>
         </div>
 
         <div class="mb-4">
           <label class="form-label">Choose your role</label>
-          <div class="role-grid">
+          <div class="role-grid" [class.invalid]="isFieldInvalid('userType')">
             <div
               class="role-card"
               [class.selected]="registerForm.get('userType')?.value === 'JobSeeker'"
@@ -95,6 +103,7 @@
               <p>Post jobs and manage applicants.</p>
             </div>
           </div>
+          <p class="field-error" *ngIf="roleError">{{ roleError }}</p>
         </div>
 
         <div *ngIf="errorMessage" class="alert alert-danger">

@@ -1,4 +1,4 @@
-namespace IdendityService.DTOs
+﻿namespace IdendityService.DTOs
 {
     public class AdminUserDto
     {
@@ -7,7 +7,7 @@ namespace IdendityService.DTOs
         public string Email { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty;
         public bool IsActive { get; set; }
-        public bool ForcePasswordReset { get; set; }
+        public bool Force<secret>Reset { get; set; }
     }
 
     public class UpdateUserStatusRequest

@@ -29,6 +29,14 @@ namespace JobProviderService.Infrastructure.Repository
             return await _invites.Find(x => x.Id == inviteId).FirstOrDefaultAsync();
         }
 
+        public async Task<InterviewInvite?> GetInviteByTokenAsync(string token)
+        {
+            if (string.IsNullOrWhiteSpace(token))
+                return null;
+
+            return await _invites.Find(x => x.PublicToken == token).FirstOrDefaultAsync();
+        }
+
         public async Task<List<InterviewInvite>> GetInvitesByProviderAsync(string providerId)
         {
             if (string.IsNullOrWhiteSpace(providerId))
@@ -71,6 +79,17 @@ namespace JobProviderService.Infrastructure.Repository
                 return null;
 
             return await _sessions.Find(x => x.Id == sessionId).FirstOrDefaultAsync();
+        }
+
+        public async Task<InterviewSession?> GetSessionByInviteIdAsync(string inviteId)
+        {
+            if (string.IsNullOrWhiteSpace(inviteId))
+                return null;
+
+            return await _sessions
+                .Find(x => x.InviteId == inviteId)
+                .SortByDescending(x => x.UpdatedAt)
+                .FirstOrDefaultAsync();
         }
 
         public async Task<List<InterviewSession>> GetSessionsByProviderAsync(string providerId)

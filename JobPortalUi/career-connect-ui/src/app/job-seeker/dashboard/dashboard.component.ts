@@ -71,7 +71,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private readonly slotMatchToleranceMs = 60 * 1000;
   private invitationSlotMap = new Map<string, InterviewTimeSlot>();
   private destroy$ = new Subject<void>();
-  private hasAutoPromptedProfile = false;
   private notificationCloseHandler = () => {
     this.showNotifications = false;
   };
@@ -111,21 +110,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
           this.profileChecklist = this.buildProfileChecklist(profile);
           this.profileCompletion = this.calculateProfileCompletion(this.profileChecklist);
           this.isProfileComplete = this.isProfileValid(profile);
-          if (!this.isProfileComplete && !this.hasAutoPromptedProfile) {
-            // If first-time, show edit profile modal
-            this.hasAutoPromptedProfile = true;
-            setTimeout(() => {
-              this.showProfileEditModal = true;
-            }, 500);
-          }
           this.isLoadingProfile = false;
         },
         error: () => {
           this.isLoadingProfile = false;
-          if (!this.hasAutoPromptedProfile) {
-            this.hasAutoPromptedProfile = true;
-            this.showProfileEditModal = true; // Default to edit if error
-          }
         }
       });
   }
@@ -267,7 +255,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   editProfile(): void {
-    this.hasAutoPromptedProfile = true;
     this.showProfileEditModal = true;
   }
 

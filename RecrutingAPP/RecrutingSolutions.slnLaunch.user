@@ -17,6 +17,14 @@
       {
         "Path": "JobSeekerService\\JobSeekerService.csproj",
         "Action": "Start"
+      },
+      {
+        "Path": "AdminService\\AdminService.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "EmailService\\EmailService.csproj",
+        "Action": "Start"
       }
     ]
   }

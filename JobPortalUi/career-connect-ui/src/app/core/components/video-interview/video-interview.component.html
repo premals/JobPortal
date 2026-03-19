@@ -84,6 +84,17 @@
         </div>
       </div>
 
+      <div class="answer-text" *ngIf="isPublicInterview">
+        <label>Answer summary (required for AI scoring)</label>
+        <textarea
+          class="form-control"
+          rows="3"
+          placeholder="Summarize your answer in a few sentences."
+          [(ngModel)]="answerText"></textarea>
+      </div>
+
+      <p class="uploading" *ngIf="isUploading">Uploading answer...</p>
+
       <div class="upload-alternative">
         <p>Or upload a video file:</p>
         <input type="file" #fileInput (change)="onFileSelected($event)"
@@ -123,14 +134,14 @@
 
     <button class="btn btn-primary" (click)="goToNextQuestion()"
             *ngIf="currentQuestionIndex < questions.length - 1"
-            [disabled]="!recordedBlob">
+            [disabled]="!canProceed">
       Next
       <i class="bi bi-arrow-right"></i>
     </button>
 
     <button class="btn btn-success" (click)="submitInterview()"
             *ngIf="currentQuestionIndex === questions.length - 1"
-            [disabled]="!allQuestionsAnswered || isSubmitting">
+            [disabled]="!allQuestionsAnswered || isSubmitting || !canProceed">
       <i class="bi bi-check2-circle"></i>
       {{ isSubmitting ? 'Submitting...' : 'Submit Interview' }}
     </button>

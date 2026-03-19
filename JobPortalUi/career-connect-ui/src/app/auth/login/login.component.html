@@ -68,8 +68,10 @@
             type="email"
             class="form-control"
             placeholder="you@company.com"
-            formControlName="email">
+            formControlName="email"
+            [class.is-invalid]="isFieldInvalid('email')">
           <div class="helper">We will route you to the right dashboard.</div>
+          <p class="field-error" *ngIf="emailError">{{ emailError }}</p>
         </div>
 
         <div class="mb-3">
@@ -79,11 +81,13 @@
               [type]="showPassword ? 'text' : 'password'"
               class="form-control"
               placeholder="Enter your password"
-              formControlName="password">
+              formControlName="password"
+              [class.is-invalid]="isFieldInvalid('password')">
             <button type="button" class="ghost-btn" (click)="togglePassword()">
               {{ showPassword ? 'Hide' : 'Show' }}
             </button>
           </div>
+          <p class="field-error" *ngIf="passwordError">{{ passwordError }}</p>
         </div>
 
         <div *ngIf="errorMessage" class="alert alert-danger">

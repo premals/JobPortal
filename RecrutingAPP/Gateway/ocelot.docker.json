@@ -71,6 +71,30 @@
       ],
       "UpstreamPathTemplate": "/jobseeker/{everything}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "PATCH" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/jobs",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "job-seeker-service",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/jobs",
+      "UpstreamHttpMethod": [ "GET" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/jobs/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "job-seeker-service",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/jobs/{everything}",
+      "UpstreamHttpMethod": [ "GET" ]
     }
   ],
   "AuthenticationProviderKey": "Bearer",
